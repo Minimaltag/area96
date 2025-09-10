@@ -78,6 +78,7 @@
     }
   </style>
 </head>
+<link rel="manifest" href="manifest.json">
 <body>
   <div class="wrap">
     <div class="card">
@@ -152,5 +153,12 @@
 
     init();
   </script>
+  <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => console.log("Service Worker registrado"))
+      .catch(err => console.error("SW erro:", err));
+  }
+</script>
 </body>
 </html>

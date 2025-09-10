@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <title>Área96 - Gerenciador de Senhas</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #f5f5f5;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .wrap {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .card {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
+
+    label {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      border-color: #666;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      color: #333;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #e0e0e0;
+    }
+
+    .password-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .password-item {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .password-item.dragging {
+      opacity: 0.5;
+      transform: translateX(0);
+      transition: transform 0.3s;
+    }
+
+    .password-item.dragging-right {
+      transform: translateX(50px);
+      background-color: #ffcccc;
+    }
+
+    .password-item.dragging-left {
+      transform: translateX(-50px);
+      background-color: #ccffcc;
+    }
+
+    .password-item div {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .password-item span {
+      font-size: 14px;
+      color: #333;
+      display: block;
+      line-height: 1.5;
+    }
+
+    .password-field {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      position: relative;
+    }
+
+    .password-text {
+      font-size: 14px;
+      color: #333;
+    }
+
+    .eye-icon {
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      cursor: pointer;
+    }
+
+    .loader {
+      display: none;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-top: 10px;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-content h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .modal-content .form-group {
+      margin-bottom: 15px;
+    }
+
+    .modal-content .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+  </style>  
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Gerenciador de Senhas</h1>
+      <div class="form-group">
+        <label for="site">Site ou Serviço</label>
+        <input type="text" id="site" placeholder="Ex: example.com">
+      </div>
+      <div class="form-group">
+        <label for="username">Usuário</label>
+        <input type="text" id="username" placeholder="Ex: usuario123">
+      </div>
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <input type="text" id="password" placeholder="Ex: ********">
+      </div>
+      <div class="btn-group">
+        <button class="btn" id="addBtn">Adicionar</button>
+        <button class="btn" id="generateBtn">Gerar Senha</button>
+      </div>
+      <p class="loader" id="loader">Carregando...</p>
+    </div>
+    <div class="card password-list" id="passwordList">
+      <!-- Senhas serão listadas aqui -->
+    </div>
+  </div>
+
+  <!-- Modal for Editing Password -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h2>Editar Senha</h2>
+      <div class="form-group">
+        <label for="editSite">Site ou Serviço</label>
+        <input type="text" id="editSite" placeholder="Ex: example.com">
+      </div>
+      <div class="form-group">
+        <label for="editUsername">Usuário</label>
+        <input type="text" id="editUsername" placeholder="Ex: usuario123">
+      </div>
+      <div class="form-group">
+        <label for="editPassword">Senha</label>
+        <input type="text" id="editPassword" placeholder="Ex: ********">
+      </div>
+      <div class="btn-group">
+        <button class="btn" id="saveEditBtn">Salvar</button>
+        <button class="btn" id="cancelEditBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+    import { createFloatingButtons } from "./floatingButtons.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
+      authDomain: "seguro-8ca1f.firebaseapp.com",
+      projectId: "seguro-8ca1f",
+      storageBucket: "seguro-8ca1f.firebasestorage.app",
+      messagingSenderId: "907049617182",
+      appId: "1:907049617182:web:5b65de251d7553274eeb0f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const dbFire = getFirestore(app);
+    const auth = getAuth(app);
+
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+    const siteInput = $('#site');
+    const usernameInput = $('#username');
+    const passwordInput = $('#password');
+    const addBtn = $('#addBtn');
+    const generateBtn = $('#generateBtn');
+    const passwordList = $('#passwordList');
+    const loader = $('#loader');
+    const editModal = $('#editModal');
+    const editSiteInput = $('#editSite');
+    const editUsernameInput = $('#editUsername');
+    const editPasswordInput = $('#editPassword');
+    const saveEditBtn = $('#saveEditBtn');
+    const cancelEditBtn = $('#cancelEditBtn');
+    let currentEditId = null;
+
+    async function init() {
+      loader.style.display = 'block';
+      addBtn.style.display = 'none';
+      generateBtn.style.display = 'none';
+
+      createFloatingButtons();
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDocRef = doc(dbFire, "users", user.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists() && docSnap.data().loginOK === true) {
+            loader.style.display = 'none';
+            addBtn.style.display = 'inline-block';
+            generateBtn.style.display = 'inline-block';
+            loadPasswords();
+          } else {
+            window.location.href = "login.html";
+          }
+        } else {
+          try {
+            await signInAnonymously(auth);
+            console.log("Usuário autenticado anonimamente");
+          } catch (e) {
+            console.error("Erro ao autenticar anonimamente:", e);
+            alert("Erro ao autenticar. Tente novamente.");
+            window.location.href = "login.html";
+          }
+        }
+      });
+
+      addBtn.addEventListener('click', () => addPassword());
+      generateBtn.addEventListener('click', () => generatePassword());
+      cancelEditBtn.addEventListener('click', () => editModal.style.display = 'none');
+      saveEditBtn.addEventListener('click', saveEditedPassword);
+    }
+
+    async function addPassword() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const site = siteInput.value.trim();
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!site || !username || !password) {
+        alert("Preencha todos os campos!");
+        return;
+      }
+
+      try {
+        const passwordDocRef = doc(collection(dbFire, `senhas`));
+        await setDoc(passwordDocRef, {
+          site,
+          username,
+          password,
+          createdAt: new Date()
+        });
+        siteInput.value = '';
+        usernameInput.value = '';
+        passwordInput.value = '';
+        loadPasswords();
+      } catch (e) {
+        console.error("Erro ao adicionar senha:", e);
+        alert("Erro ao adicionar senha. Tente novamente.");
+      }
+    }
+
+    async function loadPasswords() {
+      passwordList.innerHTML = '';
+      try {
+        const querySnapshot = await getDocs(collection(dbFire, `senhas`));
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'password-item';
+          item.dataset.id = doc.id;
+          item.innerHTML = `
+            <div>
+              <span><strong>Usuário:</strong> ${data.username}</span>
+              <span><strong>Site:</strong> ${data.site}</span>
+              <span class="password-field">
+                <span class="password-text" data-password="${data.password}">******</span>
+              </span>
+            </div>
+            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          `;
+          passwordList.appendChild(item);
+          addDragAndDrop(item);
+          item.addEventListener('dblclick', () => copyPassword(data.password));
+          item.querySelector('.eye-icon').addEventListener('click', () => togglePasswordVisibility(item.querySelector('.eye-icon')));
+        });
+      } catch (e) {
+        console.error("Erro ao carregar senhas:", e);
+        alert("Erro ao carregar senhas. Tente novamente.");
+      }
+    }
+
+    function generatePassword() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+      let password = '';
+      for (let i = 0; i < 12; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      passwordInput.value = password;
+    }
+
+    async function copyPassword(password) {
+      try {
+        await navigator.clipboard.writeText(password);
+        alert("Senha copiada para a área de transferência!");
+      } catch (e) {
+        console.error("Erro ao copiar senha:", e);
+        alert("Erro ao copiar senha. Tente novamente.");
+      }
+    }
+
+    async function editPassword(id) {
+      currentEditId = id;
+      const item = $(`[data-id="${id}"]`);
+      const site = item.querySelector('span:nth-child(2)').textContent.replace('Site: ', '');
+      const username = item.querySelector('span:nth-child(1)').textContent.replace('Usuário: ', '');
+      const password = item.querySelector('.password-text').dataset.password;
+
+      editSiteInput.value = site;
+      editUsernameInput.value = username;
+      editPasswordInput.value = password;
+      editModal.style.display = 'flex';
+    }
+
+    async function saveEditedPassword() {
+      const user = auth.currentUser;
+      if (!user || !currentEditId) return;
+
+      const site = editSiteInput.value.trim();
+      const username = editUsernameInput.value.trim();
+      const password = editPasswordInput.value.trim();
+
+      if (!site || !username || !password) {
+        alert("Preencha todos os campos!");
+        return;
+      }
+
+      try {
+        const passwordDocRef = doc(dbFire, `senhas`, currentEditId);
+        await updateDoc(passwordDocRef, {
+          site,
+          username,
+          password,
+          createdAt: new Date()
+        });
+        editModal.style.display = 'none';
+        loadPasswords();
+      } catch (e) {
+        console.error("Erro ao editar senha:", e);
+        alert("Erro ao editar senha. Tente novamente.");
+      }
+    }
+
+    async function deletePassword(id) {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      if (confirm("Tem certeza que deseja excluir esta senha?")) {
+        try {
+          const passwordDocRef = doc(dbFire, `senhas`, id);
+          await deleteDoc(passwordDocRef);
+          loadPasswords();
+        } catch (e) {
+          console.error("Erro ao excluir senha:", e);
+          alert("Erro ao excluir senha. Tente novamente.");
+        }
+      }
+    }
+
+    function togglePasswordVisibility(icon) {
+      const passwordText = icon.parentElement.querySelector('.password-text');
+      const password = passwordText.dataset.password;
+      if (passwordText.textContent === '******') {
+        passwordText.textContent = password;
+        icon.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+          <line x1="3" y1="3" x2="21" y2="21" stroke="#333" stroke-width="2"/>
+        `;
+      } else {
+        passwordText.textContent = '******';
+        icon.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        `;
+      }
+    }
+
+    function addDragAndDrop(item) {
+      let startX = 0;
+      let isDragging = false;
+
+      item.addEventListener('mousedown', (e) => {
+        startX = e.clientX;
+        isDragging = true;
+        item.classList.add('dragging');
+      });
+
+      item.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+          const deltaX = e.clientX - startX;
+          if (deltaX > 50) {
+            item.classList.add('dragging-right');
+            item.classList.remove('dragging-left');
+          } else if (deltaX < -50) {
+            item.classList.add('dragging-left');
+            item.classList.remove('dragging-right');
+          } else {
+            item.classList.remove('dragging-right', 'dragging-left');
+          }
+        }
+      });
+
+      item.addEventListener('mouseup', (e) => {
+        if (isDragging) {
+          const deltaX = e.clientX - startX;
+          if (deltaX > 50) {
+            deletePassword(item.dataset.id);
+          } else if (deltaX < -50) {
+            editPassword(item.dataset.id);
+          }
+          item.classList.remove('dragging', 'dragging-right', 'dragging-left');
+          isDragging = false;
+        }
+      });
+
+      item.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        item.classList.add('dragging');
+      });
+
+      item.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+          const deltaX = e.touches[0].clientX - startX;
+          if (deltaX > 50) {
+            item.classList.add('dragging-right');
+            item.classList.remove('dragging-left');
+          } else if (deltaX < -50) {
+            item.classList.add('dragging-left');
+            item.classList.remove('dragging-right');
+          } else {
+            item.classList.remove('dragging-right', 'dragging-left');
+          }
+        }
+      });
+
+      item.addEventListener('touchend', (e) => {
+        if (isDragging) {
+          const deltaX = e.changedTouches[0].clientX - startX;
+          if (deltaX > 50) {
+            deletePassword(item.dataset.id);
+          } else if (deltaX < -50) {
+            editPassword(item.dataset.id);
+          }
+          item.classList.remove('dragging', 'dragging-right', 'dragging-left');
+          isDragging = false;
+        }
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

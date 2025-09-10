@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <title>login</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />  
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #ffffff;
+      --muted: #666666;
+      --text: #222222;
+      --accent: #e5e5e5;
+      --danger: #cc0000;
+      --border: 1px solid #cccccc;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 10px;
+    }
+    .wrap { width: 100%; max-width: 600px; display: grid; gap: 16px }
+    .glass {
+      background: var(--card);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .hidden { display: none }
+    form { display: grid; gap: 14px }
+    .q { display: grid; gap: 6px }
+    label { font-size: 14px; color: var(--muted); }
+    select {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      width: 100%;
+      padding: 8px;
+      background: #f9f9f9;
+      border: 1px solid #bbb;
+      color: var(--text);
+      border-radius: 6px;
+      outline: none;
+    }
+    select:focus { border-color: #333; background: #fff }
+    .actions { display: flex; justify-content: center; margin-top: 10px }
+    .btn-circle {
+      width: 55px; height: 55px; border-radius: 50%;
+      border: 1px solid #555; background: #f9f9f9;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: .2s;
+      font-size: 22px;
+    }
+    .btn-circle:hover { background: #eee; }
+    .status { margin-top: 6px; text-align: center; font-size: 12px }
+    .ok { color: green }
+    .err, .blocked { color: var(--danger) }
+    .title { text-align: center; font-size: 18px; margin-bottom: 10px; color: var(--text) }
+    @keyframes glitch {
+      0% { transform: skew(0deg) translate(0, 0); }
+      20% { transform: skew(2deg) translate(-3px, 2px); }
+      40% { transform: skew(-3deg) translate(3px, -2px); }
+      60% { transform: skew(2deg) translate(-2px, 2px); }
+      80% { transform: skew(-2deg) translate(2px, -1px); }
+      100% { transform: skew(0deg) translate(0, 0); }
+    }
+    @keyframes shortCircuit {
+      0% { background: #000; }
+      20% { background: #fff; }
+      40% { background: #888; }
+      60% { background: #000; }
+      80% { background: #fff; }
+      100% { background: var(--bg); }
+    }
+    .glitch { animation: glitch 0.3s steps(2, end) 3; }
+    .short { animation: shortCircuit 0.6s steps(2, end); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- LOGIN -->
+    <div class="glass" id="loginCard">
+      <form id="quizForm" autocomplete="off">
+        <div class="q">
+          <label for="q1">Cor favorita</label>
+          <select id="q1" required>
+            <option value="" disabled selected>Escolha</option>
+            <option>VERDE</option><option>CINZA</option><option>BRANCO</option>
+            <option>PRETO</option><option>PRATA</option><option>OFF-WHITE</option><option>CHUMBO</option>
+          </select>
+        </div>
+        <div class="q">
+          <label for="q2">Nome da minha filha</label>
+          <select id="q2" required>
+            <option value="" disabled selected>Escolha</option>
+            <option>SAMARA</option><option>LUNA</option><option>CLARA</option>
+            <option>NOA</option><option>VITA</option><option>NINA</option><option>EIRA</option>
+          </select>
+        </div>
+        <div class="q">
+          <label for="q3">Nascimento</label>
+          <select id="q3" required>
+            <option value="" disabled selected>Escolha</option>
+            <option>6396</option><option>0420</option><option>1984</option>
+            <option>2025</option><option>5150</option><option>7777</option><option>9090</option>
+          </select>
+        </div>
+        <div class="q">
+          <label for="q4">Inicial da minha família</label>
+          <select id="q4" required>
+            <option value="" disabled selected>Escolha</option>
+            <option>CYS</option><option>AAA</option><option>CRT</option>
+            <option>RGB</option><option>LCD</option><option>VHS</option><option>PIX</option>
+          </select>
+        </div>
+        <div class="q">
+          <label for="q5">Nome ao contrário</label>
+          <select id="q5" required>
+            <option value="" disabled selected>Escolha</option>
+            <option>NALRAD</option><option>ANDRAL</option><option>NALDRA</option>
+            <option>ARDLAN</option><option>RALDAN</option><option>ALRNAD</option><option>NARLDA</option>
+          </select>
+        </div>
+        <div class="q">
+          <label for="q6">Cor do meu primeiro mp3</label>
+          <select id="q6" required>
+            <option value="" disabled selected>Escolha</option>
+            <option>AZUL</option><option>METÁLICO</option><option>TRANSPARENTE</option>
+            <option>GRAFITE</option><option>BRANCO</option><option>PRETO</option><option>CINZA</option>
+          </select>
+        </div>
+        <div class="q">
+          <label for="q7">Me casei com quantos anos?</label>
+          <select id="q7" required>
+            <option value="" disabled selected>Escolha</option>
+            <option>18</option><option>16</option><option>17</option>
+            <option>19</option><option>20</option><option>21</option><option>22</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn-circle">▶</button>
+        </div>
+        <div class="status" id="status"></div>
+      </form>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
+      authDomain: "seguro-8ca1f.firebaseapp.com",
+      projectId: "seguro-8ca1f",
+      storageBucket: "seguro-8ca1f.firebasestorage.app",
+      messagingSenderId: "907049617182",
+      appId: "1:907049617182:web:5b65de251d7553274eeb0f"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('quizForm');
+    const status = document.getElementById('status');
+    const loginCard = document.getElementById('loginCard');
+
+    const correctHashes = [
+      "caa3b59ed168f58e96e6137ae7b99e61e596cdb0563d228803ae7dc7772c52b2", // VERDE
+      "6dde25791f5ee30f0c558228962e900f9a413eeebd922f0ae227cebaa100d828", // SAMARA
+      "5c8d10295bf5a990f90e5003ff2f53be9421d62c991b48f2d645ad62675ebf85", // 6396
+      "18ccc3eb40086f2b6ec42f2dd452df7f07ee41a3dc88a3a16022c53350b1d398", // CYS
+      "744a293fdda3c895e07a62dd9575592150342a8b9eb7147659aeb3ea32c42014", // NALRAD
+      "dcaa3316dde8deb32032ee22dc3e358dddd4f48b16341545447ccbc384d5f0a3", // AZUL
+      "4ec9599fc203d176a301536c2e091a19bc852759b255bd6818810a42c5fed14a"  // 18
+    ];
+
+    async function sha256(msg) {
+      const buf = new TextEncoder().encode(msg.trim().toUpperCase());
+      const hash = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    const BLOCK_TIME = 7 * 60 * 1000; // 7 minutos em milissegundos
+
+    async function checkBlocked(userId) {
+      try {
+        const userDocRef = doc(db, "users", userId);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const blockUntil = data.blockUntil;
+          if (blockUntil && Date.now() < blockUntil) {
+            const ms = blockUntil - Date.now();
+            const m = Math.floor(ms / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            status.innerHTML = `<p class="blocked">AGUARDE ${m}m ${s}s</p>`;
+            form.querySelector("button").disabled = true;
+            return true;
+          } else if (blockUntil) {
+            await deleteDoc(userDocRef);
+          }
+        }
+        status.textContent = "";
+        form.querySelector("button").disabled = false;
+        return false;
+      } catch (error) {
+        console.error("Erro ao verificar bloqueio:", error);
+        status.innerHTML = `<p class="err">ERRO AO VERIFICAR STATUS</p>`;
+        return false;
+      }
+    }
+
+    // Verificar estado de autenticação
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (user) {
+          const userDocRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists() && docSnap.data().loginOK === true) {
+            window.location.href = "index.html"; // Redireciona diretamente
+          } else {
+            loginCard.classList.remove("hidden");
+          }
+          await checkBlocked(user.uid);
+        } else {
+          loginCard.classList.remove("hidden");
+          status.textContent = "";
+        }
+      } catch (error) {
+        console.error("Erro no onAuthStateChanged:", error);
+        status.innerHTML = `<p class="err">ERRO DE AUTENTICAÇÃO</p>`;
+      }
+    });
+
+    // Verificar bloqueio periodicamente
+    setInterval(async () => {
+      const user = auth.currentUser;
+      if (user) {
+        await checkBlocked(user.uid);
+      }
+    }, 1000);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      let user = auth.currentUser;
+      if (!user) {
+        try {
+          const userCredential = await signInAnonymously(auth);
+          user = userCredential.user;
+        } catch (error) {
+          console.error("Erro ao fazer login anônimo:", error);
+          status.innerHTML = `<p class="err">ERRO DE AUTENTICAÇÃO</p>`;
+          return;
+        }
+      }
+      if (await checkBlocked(user.uid)) return;
+      const answers = [...Array(7)].map((_, i) => document.getElementById(`q${i + 1}`).value);
+      let ok = true;
+      for (let i = 0; i < correctHashes.length; i++) {
+        const h = await sha256(answers[i]);
+        if (h !== correctHashes[i]) {
+          ok = false;
+          break;
+        }
+      }
+      const userDocRef = doc(db, "users", user.uid);
+      try {
+        if (ok) {
+          await setDoc(userDocRef, { loginOK: true, blockUntil: null }, { merge: true });
+          window.location.href = "index.html"; // Redireciona para index.html
+        } else {
+          await setDoc(userDocRef, { blockUntil: Date.now() + BLOCK_TIME, loginOK: false }, { merge: true });
+          status.innerHTML = `<p class="err">ERRADO! BLOQUEADO</p>`;
+          document.body.classList.add("glitch", "short");
+          setTimeout(() => document.body.classList.remove("glitch", "short"), 600);
+          await checkBlocked(user.uid);
+        }
+      } catch (error) {
+        console.error("Erro ao salvar no Firestore:", error);
+        status.innerHTML = `<p class="err">ERRO AO PROCESSAR</p>`;
+      }
+    });
+
+    // Função para embaralhar array
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Embaralhar perguntas e respostas
+    function shuffleQuestions() {
+      const form = document.getElementById("quizForm");
+      const questions = [...form.querySelectorAll(".q")];
+      shuffleArray(questions);
+      questions.forEach(q => form.insertBefore(q, form.querySelector(".actions")));
+      questions.forEach(q => {
+        const select = q.querySelector("select");
+        const opts = [...select.querySelectorAll("option")];
+        const first = opts.shift(); // Preserva a opção "Escolha"
+        shuffleArray(opts);
+        select.innerHTML = "";
+        select.appendChild(first);
+        opts.forEach(o => select.appendChild(o));
+      });
+    }
+    shuffleQuestions();
+  </script>
+</body>
+</html>

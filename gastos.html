@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <title>Cgasto</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #ffffff;
+      --muted: #666666;
+      --text: #222222;
+      --accent: #999999;
+      --danger: #cc0000;
+      --border: 1px solid #cccccc;
+      --radius: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a;
+        --card: #2a2a2a;
+        --muted: #aaaaaa;
+        --text: #e0e0e0;
+        --accent: #777777;
+        --danger: #ff5555;
+        --border: 1px solid #444444;
+      }
+    }
+
+    /* Reset */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    /* Base */
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.4;
+      overflow: auto;
+      position: relative;
+    }
+
+    /* Layout */
+    .wrap { max-width: 720px; margin: 0 auto; padding: 16px; padding-bottom: 24vh; z-index: 10; }
+
+    /* Header */
+    header { position: sticky; top: 0; z-index: 10; background: linear-gradient(180deg, var(--bg) 80%, transparent); }
+    .title { display: flex; justify-content: center; padding: 10px; }
+    h1 { font-size: 22px; margin: 0; font-weight: bold; color: var(--text); text-align: center; }
+
+    /* Tipografia */
+    h2 { font-size: 18px; font-weight: bold; margin: 0 0 10px; }
+    h2.month-title { text-align: center; font-size: 15px; font-weight: bold; margin: 0; padding: 8px 0; }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      border: var(--border);
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    /* Grid e Flex */
+    .grid { display: grid; gap: 12px; }
+    .grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .row { display: flex; align-items: center; gap: 10px; }
+    .grow { flex: 1; }
+
+    /* Formulários */
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+    input::placeholder { color: var(--muted); }
+
+    /* Botões */
+    button { cursor: pointer; transition: transform 0.1s, background 0.2s; }
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      font-weight: bold;
+      border: none;
+    }
+    button.ghost { background: #f9f9f9; border: 1px dashed #bbb; color: var(--muted); }
+    button.danger { background: var(--danger); color: #fff; border: none; }
+    button:active { transform: translateY(1px); }
+
+    /* Totais */
+    .totals { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
+    .total-valor { font-size: 24px; font-weight: bold; }
+
+    /* Listas */
+    .list { display: grid; gap: 10px; margin-top: 12px; max-height: 400px; overflow-y: auto; }
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: var(--border);
+      padding: 12px;
+      border-radius: 8px;
+    }
+    .amount { font-weight: bold; color: var(--danger); }
+    .amount.paid { color: #0a0; }
+    .item .actions { display: flex; gap: 6px; }
+
+    /* Badges */
+    .badge {
+      font-size: 11px; padding: 4px 8px;
+      border-radius: 999px;
+      border: var(--border);
+      color: var(--muted);
+      background: transparent;
+    }
+    .badge.paid { border-color: #0a0; color: #0a0; }
+
+    /* Botões circulares */
+    .btn-circle {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: var(--border); background: #fdfdfd;
+    }
+    .btn-circle svg { width: 16px; height: 16px; stroke-width: 2; stroke: currentColor; }
+
+    /* Estado vazio */
+    .empty { border: 1px dashed #bbb; padding: 18px; border-radius: 10px; text-align: center; color: var(--muted); }
+
+    /* Fab */
+    .fab { position: absolute; bottom: 14px; right: 14px; }
+    .fab-btn {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      border: none; font-size: 26px;
+      transition: transform 0.1s;
+    }
+    .fab-btn:active { transform: scale(0.95); }
+    .fab-btn svg { width: 22px; height: 22px; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+    }
+    .modal {
+      background: var(--card);
+      padding: 18px;
+      border-radius: var(--radius);
+      width: 90%; max-width: 380px;
+      display: grid; gap: 12px;
+      border: var(--border);
+    }
+    .modal h2 { margin: 0; font-size: 18px; font-weight: bold; }
+    .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* Botões flutuantes (navegação) */
+    .floating-buttons {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 16px; z-index: 20;
+    }
+    .floating-btn {
+      width: 54px; height: 54px;
+      background: var(--card);
+      border-radius: 50%;
+      border: var(--border);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .floating-btn:hover { transform: scale(1.05); background: #f2f2f2; }
+    .floating-btn:active { transform: scale(0.95); }
+    .floating-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>CONSUMO MENSAL</h1>
+      </div>
+      <div class="card grid cols-2" style="align-items:end">
+        <div>
+          <label for="month">Mês</label>
+          <input id="month" type="month" />
+        </div>
+        <div>
+          <label for="search">Filtro</label>
+          <input id="search" type="search" placeholder="categoria ou nota" />
+        </div>
+        <div class="totals" style="grid-column:1/-1">
+          <div>
+            <div class="muted">Total do mês</div>
+            <div class="total-valor" id="total">R$ 0,00</div>
+          </div>
+        </div>
+        <footer class="fab">
+          <button id="addBtn" class="fab-btn" title="Adicionar gasto">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+          </button>
+        </footer>
+      </div>
+    </header>
+    <section style="margin-top:14px" class="grid">
+      <h2 class="month-title" id="monthTitle">REFERENTE AO MÊS</h2>
+      <div id="lista" class="list"></div>
+    </section>
+  </div>
+  <template id="tpl-item">
+    <div class="item" data-id="">
+      <div class="grow">
+        <div class="row" style="justify-content:space-between">
+          <div class="amount"></div>
+          <div class="muted date"></div>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:6px">
+          <div class="muted info"></div>
+          <span class="badge categoria"></span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-circle edit" title="Editar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M4 20h4.586l10.828-10.828-4.586-4.586L4 15.414V20z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn-circle del" title="Apagar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn-circle pay" title="Pago">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </template>
+  <div id="modalAdd" class="modal-backdrop" style="display:none">
+    <div class="modal">
+      <h2>Novo gasto</h2>
+      <label>Valor <input id="valor" type="number" step="0.01" placeholder="0,00" required></label>
+      <label>Data <input id="data" type="date" required></label>
+      <label>Categoria <input id="categoria" type="text" placeholder="ex.: mercado"></label>
+      <label>Nota <input id="nota" type="text" placeholder="descrição"></label>
+      <div class="actions">
+        <button id="cancelAdd" class="ghost">Cancelar</button>
+        <button id="saveAdd" class="primary">Adicionar</button>
+      </div>
+    </div>
+  </div>
+  <div id="modalWrap" class="modal-backdrop" style="display:none">
+    <div class="modal">
+      <h2>Editar gasto</h2>
+      <label>Valor <input id="editValor" type="number" step="0.01" /></label>
+      <label>Data <input id="editData" type="date" /></label>
+      <label>Categoria <input id="editCategoria" type="text" /></label>
+      <label>Nota <input id="editNota" type="text" /></label>
+      <div class="actions">
+        <button id="cancelEdit" class="ghost">Cancelar</button>
+        <button id="saveEdit" class="primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+    import { createFloatingButtons } from "./floatingButtons.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
+      authDomain: "seguro-8ca1f.firebaseapp.com",
+      projectId: "seguro-8ca1f",
+      storageBucket: "seguro-8ca1f.firebasestorage.app",
+      messagingSenderId: "907049617182",
+      appId: "1:907049617182:web:5b65de251d7553274eeb0f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const dbFire = getFirestore(app);
+    const auth = getAuth(app);
+
+    const $ = s => document.querySelector(s);
+    const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
+
+    const state = { items: [], month: '', search: '', editing: null };
+
+    function today() { return new Date().toISOString().slice(0, 10); }
+    function yyyymm(d) { return d.slice(0, 7); }
+
+    function formatMonthTitle(yyyymm) {
+      const [year, month] = yyyymm.split('-');
+      const date = new Date(year, month - 1);
+      return `REFERENTE AO MÊS ${monthFmt.format(date).toUpperCase()}`;
+    }
+
+    function setMonthFromNow() {
+      const m = yyyymm(today());
+      state.month = m; $('#month').value = m;
+    }
+
+    async function add(item) {
+      try {
+        const docRef = await addDoc(collection(dbFire, "gastos"), item);
+        item.id = docRef.id;
+      } catch (e) { console.warn("Erro salvar nuvem", e); }
+      state.items.push(item);
+      render();
+    }
+
+    async function remove(id) {
+      try { await deleteDoc(doc(dbFire, "gastos", id)); }
+      catch (e) { console.warn("Erro remover nuvem", e); }
+      state.items = state.items.filter(i => i.id !== id);
+      render();
+    }
+
+    async function update(id, patch) {
+      try { await updateDoc(doc(dbFire, "gastos", id), patch); }
+      catch (e) { console.warn("Erro atualizar nuvem", e); }
+      const i = state.items.findIndex(x => x.id === id);
+      if (i > -1) { state.items[i] = { ...state.items[i], ...patch }; render(); }
+    }
+
+    function filtered() {
+      const f = state.search.toLowerCase();
+      return state.items
+        .filter(i => yyyymm(i.data) === state.month)
+        .filter(i => !f || (i.categoria?.toLowerCase().includes(f) || i.nota?.toLowerCase().includes(f)))
+        .sort((a, b) => b.data.localeCompare(a.data) || b.createdAt - a.createdAt);
+    }
+
+    function computeTotal(list) { return list.reduce((acc, i) => acc + Number(i.valor || 0), 0); }
+
+    function el(tag, props = {}, children = []) {
+      const e = document.createElement(tag);
+      Object.assign(e, props);
+      children.forEach(c => e.appendChild(c));
+      return e;
+    }
+
+    function render() {
+      const list = filtered();
+      $('#total').textContent = fmt.format(computeTotal(list));
+      $('#monthTitle').textContent = formatMonthTitle(state.month);
+      const wrap = $('#lista'); wrap.innerHTML = '';
+      if (list.length === 0) {
+        wrap.appendChild(el('div', { className: 'empty', innerHTML: 'Nada por aqui ainda. Adicione seu primeiro gasto.' }));
+        return;
+      }
+      const tpl = $('#tpl-item');
+      list.forEach(i => {
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        node.dataset.id = i.id;
+
+        const amount = node.querySelector('.amount');
+        amount.textContent = fmt.format(i.valor);
+        amount.classList.toggle('paid', !!i.pago);
+
+        node.querySelector('.date').textContent = new Date(i.data).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+        node.querySelector('.info').textContent = i.nota || '—';
+
+        const badge = node.querySelector('.categoria');
+        badge.textContent = i.categoria || 'sem categoria';
+        badge.classList.toggle('paid', !!i.pago);
+
+        node.querySelector('.del').addEventListener('click', () => { if (confirm('Apagar este gasto?')) remove(i.id); });
+        node.querySelector('.edit').addEventListener('click', () => openEditor(i));
+        node.querySelector('.pay').addEventListener('click', () => {
+          i.pago = !i.pago;
+          update(i.id, { pago: i.pago });
+        });
+
+        wrap.appendChild(node);
+      });
+    }
+
+    function openEditor(item) {
+      state.editing = item.id;
+      $('#editValor').value = item.valor;
+      $('#editData').value = item.data;
+      $('#editCategoria').value = item.categoria || '';
+      $('#editNota').value = item.nota || '';
+      $('#modalWrap').style.display = 'flex';
+    }
+    function closeEditor() { state.editing = null; $('#modalWrap').style.display = 'none'; }
+
+    function openAdd() { $('#valor').value = ''; $('#data').value = today(); $('#categoria').value = ''; $('#nota').value = ''; $('#modalAdd').style.display = 'flex'; }
+    function closeAdd() { $('#modalAdd').style.display = 'none'; }
+
+    function wireControls() {
+      $('#month').addEventListener('change', e => { state.month = e.target.value; render(); });
+      $('#search').addEventListener('input', e => { state.search = e.target.value; render(); });
+      $('#addBtn').addEventListener('click', openAdd);
+      $('#cancelAdd').addEventListener('click', closeAdd);
+      $('#saveAdd').addEventListener('click', () => {
+        const valor = Number($('#valor').value);
+        if (!Number.isFinite(valor) || valor <= 0) { alert('Valor inválido'); return; }
+        const data = $('#data').value || today();
+        const categoria = $('#categoria').value.trim();
+        const nota = $('#nota').value.trim();
+        add({ valor, data, categoria, nota, createdAt: Date.now(), pago: false });
+        closeAdd();
+      });
+
+      $('#cancelEdit').addEventListener('click', closeEditor);
+      $('#saveEdit').addEventListener('click', () => {
+        if (!state.editing) return;
+        const valor = Number($('#editValor').value);
+        if (!Number.isFinite(valor) || valor <= 0) { alert('Valor inválido'); return; }
+        update(state.editing, {
+          valor,
+          data: $('#editData').value,
+          categoria: $('#editCategoria').value,
+          nota: $('#editNota').value
+        });
+        closeEditor();
+      });
+    }
+
+    async function init() {
+      // Adicionar os botões flutuantes
+      createFloatingButtons();
+
+      // Monitorar o estado da autenticação
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          // Verificar se o usuário tem loginOK: true no Firestore
+          const userDocRef = doc(dbFire, "users", user.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists() && docSnap.data().loginOK === true) {
+            // Usuário autenticado corretamente, prosseguir com a inicialização
+            setMonthFromNow();
+            $('#data').value = today();
+            wireControls();
+
+            // Carregar dados do Firestore
+            getDocs(collection(dbFire, "gastos")).then(snap => {
+              state.items = [];
+              snap.forEach(docSnap => {
+                state.items.push({ ...docSnap.data(), id: docSnap.id });
+              });
+              render();
+            }).catch(e => {
+              console.warn("Erro carregar nuvem", e);
+              alert("Erro ao carregar dados. Tente novamente.");
+            });
+          } else {
+            // Redirecionar para login.html se loginOK não for true
+            window.location.href = "login.html";
+          }
+        } else {
+          // Redirecionar para login.html se não houver usuário autenticado
+          window.location.href = "login.html";
+        }
+      });
+
+      // Autenticar anonimamente
+      try {
+        await signInAnonymously(auth);
+        console.log("Usuário autenticado anonimamente");
+      } catch (e) {
+        console.error("Erro ao autenticar anonimamente:", e);
+        alert("Erro ao autenticar. Tente novamente.");
+        window.location.href = "login.html";
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

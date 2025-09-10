@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <title>Area96</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #333;
+    }
+
+    .wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
+
+    .card {
+      background-color: #ffffff;
+      border: 2px solid #cccccc;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 10px;
+      font-weight: normal;
+    }
+
+    p {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      background-color: transparent;
+      border: 2px solid #333;
+      border-radius: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .loader {
+      font-size: 16px;
+      color: #666;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>BEM-VINDO AO ÁREA96</h1>
+      <p>Área de segurança de dados</p>
+      <button class="btn" id="logoffBtn">Logoff</button>
+      <p class="loader" id="loader">Carregando...</p>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+    import { createFloatingButtons } from "./floatingButtons.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
+      authDomain: "seguro-8ca1f.firebaseapp.com",
+      projectId: "seguro-8ca1f",
+      storageBucket: "seguro-8ca1f.firebasestorage.app",
+      messagingSenderId: "907049617182",
+      appId: "1:907049617182:web:5b65de251d7553274eeb0f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const dbFire = getFirestore(app);
+    const auth = getAuth(app);
+
+    const $ = s => document.querySelector(s);
+    const logoffBtn = $('#logoffBtn');
+    const loader = $('#loader');
+
+    async function init() {
+      loader.style.display = 'block';
+      logoffBtn.style.display = 'none';
+
+      createFloatingButtons(); // Adiciona os botões flutuantes
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDocRef = doc(dbFire, "users", user.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists() && docSnap.data().loginOK === true) {
+            loader.style.display = 'none';
+            logoffBtn.style.display = 'inline-block';
+          } else {
+            window.location.href = "login.html";
+          }
+        } else {
+          try {
+            await signInAnonymously(auth);
+            console.log("Usuário autenticado anonimamente");
+          } catch (e) {
+            console.error("Erro ao autenticar anonimamente:", e);
+            alert("Erro ao autenticar. Tente novamente.");
+            window.location.href = "login.html";
+          }
+        }
+      });
+
+      logoffBtn.addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          console.log("Usuário deslogado");
+          window.location.href = "login.html";
+        } catch (e) {
+          console.error("Erro ao deslogar:", e);
+          alert("Erro ao fazer logoff. Tente novamente.");
+        }
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

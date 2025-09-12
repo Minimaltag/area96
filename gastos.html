@@ -47,16 +47,95 @@
     }
 
     /* Layout */
-    .wrap { max-width: 720px; margin: 0 auto; padding: 16px; padding-bottom: 24vh; z-index: 10; }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 60px;
+      z-index: 10;
+    }
 
     /* Header */
-    header { position: sticky; top: 0; z-index: 10; background: linear-gradient(180deg, var(--bg) 80%, transparent); }
-    .title { display: flex; justify-content: center; padding: 10px; }
-    h1 { font-size: 22px; margin: 0; font-weight: bold; color: var(--text); text-align: center; }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(180deg, var(--bg) 80%, transparent);
+    }
+    .title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0;
+      font-weight: bold;
+      color: var(--text);
+      text-align: center; /* Centralize title */
+      text-transform: uppercase; /* Make title uppercase */
+      flex: 1; /* Allow h1 to take available space */
+    }
+
+    /* Menu de engrenagem */
+    .menu-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--card);
+      border: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .menu-btn svg {
+      width: 32px;
+      height: 32px;
+      stroke: var(--text);
+    }
+    .menu {
+      position: absolute;
+      top: 58px;
+      right: 16px;
+      background: var(--card);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 20;
+    }
+    .menu.active {
+      display: block;
+    }
+    .menu-item {
+      padding: 12px 16px;
+      color: var(--text);
+      cursor: pointer;
+      border-bottom: var(--border);
+    }
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+    .menu-item:hover {
+      background: var(--accent);
+      color: #fff;
+    }
 
     /* Tipografia */
-    h2 { font-size: 18px; font-weight: bold; margin: 0 0 10px; }
-    h2.month-title { text-align: center; font-size: 15px; font-weight: bold; margin: 0; padding: 8px 0; }
+    h2 {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0 0 10px;
+    }
+    h2.month-title {
+      text-align: center;
+      font-size: 15px;
+      font-weight: bold;
+      margin: 0;
+      padding: 8px 0;
+    }
 
     /* Cards */
     .card {
@@ -70,14 +149,30 @@
     }
 
     /* Grid e Flex */
-    .grid { display: grid; gap: 12px; }
-    .grid.cols-2 { grid-template-columns: 1fr 1fr; }
-    .row { display: flex; align-items: center; gap: 10px; }
-    .grow { flex: 1; }
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+    .grid.cols-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .grow {
+      flex: 1;
+    }
 
     /* Formulários */
-    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-    input, button {
+    label {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+    input, button, select {
       width: 100%;
       padding: 12px;
       border-radius: 8px;
@@ -86,26 +181,63 @@
       color: var(--text);
       font-family: Arial, sans-serif;
     }
-    input::placeholder { color: var(--muted); }
+    input::placeholder, select::placeholder {
+      color: var(--muted);
+    }
 
     /* Botões */
-    button { cursor: pointer; transition: transform 0.1s, background 0.2s; }
+    button {
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+    }
     button.primary {
       background: var(--accent);
       color: #fff;
       font-weight: bold;
       border: none;
     }
-    button.ghost { background: #f9f9f9; border: 1px dashed #bbb; color: var(--muted); }
-    button.danger { background: var(--danger); color: #fff; border: none; }
-    button:active { transform: translateY(1px); }
+    button.ghost {
+      background: #f9f9f9;
+      border: 1px dashed #bbb;
+      color: var(--muted);
+    }
+    button.danger {
+      background: var(--danger);
+      color: #fff;
+      border: none;
+    }
+    button:active {
+      transform: translateY(1px);
+    }
 
     /* Totais */
-    .totals { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
-    .total-valor { font-size: 24px; font-weight: bold; }
+    .totals {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 6px;
+    }
+    .total-valor {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .remaining-valor {
+      font-size: 24px;
+      font-weight: bold;
+      color: #0a0;
+    }
+    .remaining-valor.negative {
+      color: var(--danger);
+    }
 
     /* Listas */
-    .list { display: grid; gap: 10px; margin-top: 12px; max-height: 400px; overflow-y: auto; }
+    .list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
     .item {
       display: flex;
       justify-content: space-between;
@@ -116,78 +248,129 @@
       padding: 12px;
       border-radius: 8px;
     }
-    .amount { font-weight: bold; color: var(--danger); }
-    .amount.paid { color: #0a0; }
-    .item .actions { display: flex; gap: 6px; }
+    .amount {
+      font-weight: bold;
+      color: var(--danger);
+    }
+    .amount.paid {
+      color: #0a0;
+    }
+    .item .actions {
+      display: flex;
+      gap: 6px;
+    }
 
     /* Badges */
     .badge {
-      font-size: 11px; padding: 4px 8px;
+      font-size: 11px;
+      padding: 4px 8px;
       border-radius: 999px;
       border: var(--border);
       color: var(--muted);
       background: transparent;
     }
-    .badge.paid { border-color: #0a0; color: #0a0; }
+    .badge.paid {
+      border-color: #0a0;
+      color: #0a0;
+    }
 
     /* Botões circulares */
     .btn-circle {
-      width: 32px; height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      border: var(--border); background: #fdfdfd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: var(--border);
+      background: #fdfdfd;
     }
-    .btn-circle svg { width: 16px; height: 16px; stroke-width: 2; stroke: currentColor; }
+    .btn-circle svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 2;
+      stroke: currentColor;
+    }
 
     /* Estado vazio */
-    .empty { border: 1px dashed #bbb; padding: 18px; border-radius: 10px; text-align: center; color: var(--muted); }
-
-    /* Fab */
-    .fab { position: absolute; bottom: 14px; right: 14px; }
-    .fab-btn {
-      width: 52px; height: 52px; border-radius: 50%;
-      background: var(--accent); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      border: none; font-size: 26px;
-      transition: transform 0.1s;
+    .empty {
+      border: 1px dashed #bbb;
+      padding: 18px;
+      border-radius: 10px;
+      text-align: center;
+      color: var(--muted);
     }
-    .fab-btn:active { transform: scale(0.95); }
-    .fab-btn svg { width: 22px; height: 22px; }
 
     /* Modal */
     .modal-backdrop {
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       background: rgba(0,0,0,0.4);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       z-index: 100;
     }
     .modal {
       background: var(--card);
       padding: 18px;
       border-radius: var(--radius);
-      width: 90%; max-width: 380px;
-      display: grid; gap: 12px;
+      width: 90%;
+      max-width: 380px;
+      display: grid;
+      gap: 12px;
       border: var(--border);
     }
-    .modal h2 { margin: 0; font-size: 18px; font-weight: bold; }
-    .modal .actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .modal .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
 
     /* Botões flutuantes (navegação) */
     .floating-buttons {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 16px; z-index: 20;
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 16px;
+      z-index: 20;
+      transition: opacity 0.2s ease; /* Smooth transition for hiding */
+    }
+    .floating-buttons.hidden {
+      opacity: 0;
+      pointer-events: none; /* Disable interactions when hidden */
     }
     .floating-btn {
-      width: 54px; height: 54px;
+      width: 58px;
+      height: 58px;
       background: var(--card);
       border-radius: 50%;
       border: var(--border);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: transform 0.2s ease, background 0.2s ease;
     }
-    .floating-btn:hover { transform: scale(1.05); background: #f2f2f2; }
-    .floating-btn:active { transform: scale(0.95); }
-    .floating-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; }
+    .floating-btn:hover {
+      transform: scale(1.05);
+      background: #f2f2f2;
+    }
+    .floating-btn:active {
+      transform: scale(0.95);
+    }
+    .floating-btn svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--text);
+      fill: none;
+    }
   </style>
 </head>
 <body>
@@ -195,6 +378,15 @@
     <header>
       <div class="title">
         <h1>CONSUMO MENSAL</h1>
+        <button class="menu-btn" id="menuBtn" title="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/>
+          </svg>
+        </button>
+        <div class="menu" id="menu">
+          <div class="menu-item" id="addExpense">Adicionar gasto</div>
+          <div class="menu-item" id="addIncome">Renda mensal</div>
+        </div>
       </div>
       <div class="card grid cols-2" style="align-items:end">
         <div>
@@ -202,22 +394,21 @@
           <input id="month" type="month" />
         </div>
         <div>
-          <label for="search">Filtro</label>
-          <input id="search" type="search" placeholder="categoria ou nota" />
+          <label for="categoryFilter">Filtro por categoria</label>
+          <select id="categoryFilter">
+            <option value="">Todas as categorias</option>
+          </select>
         </div>
         <div class="totals" style="grid-column:1/-1">
           <div>
             <div class="muted">Total do mês</div>
             <div class="total-valor" id="total">R$ 0,00</div>
           </div>
+          <div>
+            <div class="muted">Saldo restante</div>
+            <div class="remaining-valor" id="remaining">R$ 0,00</div>
+          </div>
         </div>
-        <footer class="fab">
-          <button id="addBtn" class="fab-btn" title="Adicionar gasto">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
-          </button>
-        </footer>
       </div>
     </header>
     <section style="margin-top:14px" class="grid">
@@ -253,23 +444,35 @@
   <div id="modalAdd" class="modal-backdrop" style="display:none">
     <div class="modal">
       <h2>Novo gasto</h2>
+      <label>Nota <input id="nota" type="text" placeholder="descrição"></label>
       <label>Valor <input id="valor" type="number" step="0.01" placeholder="0,00" required></label>
       <label>Data <input id="data" type="date" required></label>
       <label>Categoria <input id="categoria" type="text" placeholder="ex.: mercado"></label>
-      <label>Nota <input id="nota" type="text" placeholder="descrição"></label>
       <div class="actions">
         <button id="cancelAdd" class="ghost">Cancelar</button>
         <button id="saveAdd" class="primary">Adicionar</button>
       </div>
     </div>
   </div>
+  <div id="modalIncome" class="modal-backdrop" style="display:none">
+    <div class="modal">
+      <h2 id="incomeModalTitle">Renda mensal</h2>
+      <label>Valor da renda <input id="incomeValor" type="number" step="0.01" placeholder="0,00" required></label>
+      <label>Nota <input id="incomeNota" type="text" placeholder="descrição"></label>
+      <label>Mês <input id="incomeMonth" type="month" required></label>
+      <div class="actions">
+        <button id="cancelIncome" class="ghost">Cancelar</button>
+        <button id="saveIncome" class="primary">Salvar</button>
+      </div>
+    </div>
+  </div>
   <div id="modalWrap" class="modal-backdrop" style="display:none">
     <div class="modal">
       <h2>Editar gasto</h2>
+      <label>Nota <input id="editNota" type="text" /></label>
       <label>Valor <input id="editValor" type="number" step="0.01" /></label>
       <label>Data <input id="editData" type="date" /></label>
       <label>Categoria <input id="editCategoria" type="text" /></label>
-      <label>Nota <input id="editNota" type="text" /></label>
       <div class="actions">
         <button id="cancelEdit" class="ghost">Cancelar</button>
         <button id="saveEdit" class="primary">Salvar</button>
@@ -296,10 +499,11 @@
     const auth = getAuth(app);
 
     const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
     const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
     const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
 
-    const state = { items: [], month: '', search: '', editing: null };
+    const state = { items: [], incomes: [], month: '', categoryFilter: '', editingIncomeId: null };
 
     function today() { return new Date().toISOString().slice(0, 10); }
     function yyyymm(d) { return d.slice(0, 7); }
@@ -312,7 +516,9 @@
 
     function setMonthFromNow() {
       const m = yyyymm(today());
-      state.month = m; $('#month').value = m;
+      state.month = m;
+      $('#month').value = m;
+      $('#incomeMonth').value = m;
     }
 
     async function add(item) {
@@ -322,6 +528,22 @@
       } catch (e) { console.warn("Erro salvar nuvem", e); }
       state.items.push(item);
       render();
+    }
+
+    async function addIncome(income) {
+      try {
+        const docRef = await addDoc(collection(dbFire, "incomes"), income);
+        income.id = docRef.id;
+      } catch (e) { console.warn("Erro salvar renda nuvem", e); }
+      state.incomes.push(income);
+      render();
+    }
+
+    async function updateIncome(id, patch) {
+      try { await updateDoc(doc(dbFire, "incomes", id), patch); }
+      catch (e) { console.warn("Erro atualizar renda nuvem", e); }
+      const i = state.incomes.findIndex(x => x.id === id);
+      if (i > -1) { state.incomes[i] = { ...state.incomes[i], ...patch }; render(); }
     }
 
     async function remove(id) {
@@ -338,15 +560,49 @@
       if (i > -1) { state.items[i] = { ...state.items[i], ...patch }; render(); }
     }
 
-    function filtered() {
-      const f = state.search.toLowerCase();
-      return state.items
-        .filter(i => yyyymm(i.data) === state.month)
-        .filter(i => !f || (i.categoria?.toLowerCase().includes(f) || i.nota?.toLowerCase().includes(f)))
-        .sort((a, b) => b.data.localeCompare(a.data) || b.createdAt - a.createdAt);
+    function getCategoriesForMonth() {
+      const categories = new Set(
+        state.items
+          .filter(i => yyyymm(i.data) === state.month && i.categoria)
+          .map(i => i.categoria)
+      );
+      return ['Todas as categorias', ...categories];
     }
 
-    function computeTotal(list) { return list.reduce((acc, i) => acc + Number(i.valor || 0), 0); }
+    function populateCategoryFilter() {
+      const select = $('#categoryFilter');
+      select.innerHTML = '';
+      const categories = getCategoriesForMonth();
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category === 'Todas as categorias' ? '' : category;
+        option.textContent = category;
+        select.appendChild(option);
+      });
+    }
+
+    function filtered() {
+      const f = state.categoryFilter.toLowerCase();
+      return state.items
+        .filter(i => yyyymm(i.data) === state.month)
+        .filter(i => !f || i.categoria?.toLowerCase() === f)
+        .sort((a, b) => (a.nota || '').localeCompare(b.nota || ''));
+    }
+
+    function getMonthlyIncome() {
+      const income = state.incomes.find(i => yyyymm(i.month) === state.month);
+      return income ? Number(income.valor) : 0;
+    }
+
+    function computeTotal(list) {
+      return list.reduce((acc, i) => acc + Number(i.valor || 0), 0);
+    }
+
+    function computeRemaining() {
+      const totalExpenses = computeTotal(filtered());
+      const monthlyIncome = getMonthlyIncome();
+      return monthlyIncome - totalExpenses;
+    }
 
     function el(tag, props = {}, children = []) {
       const e = document.createElement(tag);
@@ -358,8 +614,13 @@
     function render() {
       const list = filtered();
       $('#total').textContent = fmt.format(computeTotal(list));
+      const remaining = computeRemaining();
+      $('#remaining').textContent = fmt.format(remaining);
+      $('#remaining').classList.toggle('negative', remaining < 0);
       $('#monthTitle').textContent = formatMonthTitle(state.month);
-      const wrap = $('#lista'); wrap.innerHTML = '';
+      populateCategoryFilter();
+      const wrap = $('#lista');
+      wrap.innerHTML = '';
       if (list.length === 0) {
         wrap.appendChild(el('div', { className: 'empty', innerHTML: 'Nada por aqui ainda. Adicione seu primeiro gasto.' }));
         return;
@@ -393,21 +654,64 @@
 
     function openEditor(item) {
       state.editing = item.id;
+      $('#editNota').value = item.nota || '';
       $('#editValor').value = item.valor;
       $('#editData').value = item.data;
       $('#editCategoria').value = item.categoria || '';
-      $('#editNota').value = item.nota || '';
       $('#modalWrap').style.display = 'flex';
     }
-    function closeEditor() { state.editing = null; $('#modalWrap').style.display = 'none'; }
+    function closeEditor() {
+      state.editing = null;
+      $('#modalWrap').style.display = 'none';
+    }
 
-    function openAdd() { $('#valor').value = ''; $('#data').value = today(); $('#categoria').value = ''; $('#nota').value = ''; $('#modalAdd').style.display = 'flex'; }
-    function closeAdd() { $('#modalAdd').style.display = 'none'; }
+    function openAdd() {
+      $('#nota').value = '';
+      $('#valor').value = '';
+      $('#data').value = today();
+      $('#categoria').value = '';
+      $('#modalAdd').style.display = 'flex';
+    }
+    function closeAdd() {
+      $('#modalAdd').style.display = 'none';
+    }
+
+    function openIncome() {
+      const income = state.incomes.find(i => yyyymm(i.month) === state.month);
+      $('#incomeModalTitle').textContent = income ? 'Editar renda mensal' : 'Adicionar renda mensal';
+      state.editingIncomeId = income ? income.id : null;
+      $('#incomeValor').value = income ? income.valor : '';
+      $('#incomeNota').value = income ? income.nota || '' : '';
+      $('#incomeMonth').value = state.month;
+      $('#modalIncome').style.display = 'flex';
+    }
+    function closeIncome() {
+      $('#modalIncome').style.display = 'none';
+      state.editingIncomeId = null;
+    }
 
     function wireControls() {
-      $('#month').addEventListener('change', e => { state.month = e.target.value; render(); });
-      $('#search').addEventListener('input', e => { state.search = e.target.value; render(); });
-      $('#addBtn').addEventListener('click', openAdd);
+      $('#month').addEventListener('change', e => {
+        state.month = e.target.value;
+        state.categoryFilter = '';
+        $('#categoryFilter').value = '';
+        render();
+      });
+      $('#categoryFilter').addEventListener('change', e => {
+        state.categoryFilter = e.target.value;
+        render();
+      });
+      $('#menuBtn').addEventListener('click', () => {
+        $('#menu').classList.toggle('active');
+      });
+      $('#addExpense').addEventListener('click', () => {
+        $('#menu').classList.remove('active');
+        openAdd();
+      });
+      $('#addIncome').addEventListener('click', () => {
+        $('#menu').classList.remove('active');
+        openIncome();
+      });
       $('#cancelAdd').addEventListener('click', closeAdd);
       $('#saveAdd').addEventListener('click', () => {
         const valor = Number($('#valor').value);
@@ -418,39 +722,63 @@
         add({ valor, data, categoria, nota, createdAt: Date.now(), pago: false });
         closeAdd();
       });
-
+      $('#cancelIncome').addEventListener('click', closeIncome);
+      $('#saveIncome').addEventListener('click', () => {
+        const valor = Number($('#incomeValor').value);
+        if (!Number.isFinite(valor) || valor <= 0) { alert('Valor inválido'); return; }
+        const month = $('#incomeMonth').value;
+        const nota = $('#incomeNota').value.trim();
+        if (state.editingIncomeId) {
+          updateIncome(state.editingIncomeId, { valor, month, nota });
+        } else {
+          addIncome({ valor, month, nota, createdAt: Date.now() });
+        }
+        closeIncome();
+      });
       $('#cancelEdit').addEventListener('click', closeEditor);
       $('#saveEdit').addEventListener('click', () => {
         if (!state.editing) return;
         const valor = Number($('#editValor').value);
         if (!Number.isFinite(valor) || valor <= 0) { alert('Valor inválido'); return; }
         update(state.editing, {
+          nota: $('#editNota').value,
           valor,
           data: $('#editData').value,
-          categoria: $('#editCategoria').value,
-          nota: $('#editNota').value
+          categoria: $('#editCategoria').value
         });
         closeEditor();
+      });
+      // Fechar menu ao clicar fora
+      document.addEventListener('click', e => {
+        if (!e.target.closest('#menuBtn') && !e.target.closest('#menu')) {
+          $('#menu').classList.remove('active');
+        }
+      });
+
+      // Hide floating buttons when keyboard is open, except for #month
+      const inputs = Array.from($$('input, select')).filter(input => input.id !== 'month');
+      inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+          $('.floating-buttons').classList.add('hidden');
+        });
+        input.addEventListener('blur', () => {
+          $('.floating-buttons').classList.remove('hidden');
+        });
       });
     }
 
     async function init() {
-      // Adicionar os botões flutuantes
       createFloatingButtons();
-
-      // Monitorar o estado da autenticação
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          // Verificar se o usuário tem loginOK: true no Firestore
           const userDocRef = doc(dbFire, "users", user.uid);
           const docSnap = await getDoc(userDocRef);
           if (docSnap.exists() && docSnap.data().loginOK === true) {
-            // Usuário autenticado corretamente, prosseguir com a inicialização
             setMonthFromNow();
             $('#data').value = today();
             wireControls();
 
-            // Carregar dados do Firestore
+            // Carregar gastos
             getDocs(collection(dbFire, "gastos")).then(snap => {
               state.items = [];
               snap.forEach(docSnap => {
@@ -458,20 +786,29 @@
               });
               render();
             }).catch(e => {
-              console.warn("Erro carregar nuvem", e);
+              console.warn("Erro carregar gastos", e);
               alert("Erro ao carregar dados. Tente novamente.");
             });
+
+            // Carregar rendas
+            getDocs(collection(dbFire, "incomes")).then(snap => {
+              state.incomes = [];
+              snap.forEach(docSnap => {
+                state.incomes.push({ ...docSnap.data(), id: docSnap.id });
+              });
+              render();
+            }).catch(e => {
+              console.warn("Erro carregar rendas", e);
+              alert("Erro ao carregar rendas. Tente novamente.");
+            });
           } else {
-            // Redirecionar para login.html se loginOK não for true
             window.location.href = "login.html";
           }
         } else {
-          // Redirecionar para login.html se não houver usuário autenticado
           window.location.href = "login.html";
         }
       });
 
-      // Autenticar anonimamente
       try {
         await signInAnonymously(auth);
         console.log("Usuário autenticado anonimamente");

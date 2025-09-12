@@ -41,7 +41,7 @@ export function createFloatingButtons() {
       backdrop-filter: blur(12px);
       border-radius: 40px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 1000;
+      z-index: 50;
     }
     .floating-buttons .floating-btn {
       display: flex;

@@ -18,19 +18,21 @@
     body {
       background-color: #f5f5f5;
       color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
       min-height: 100vh;
       padding: 20px;
+      overflow-x: hidden;
     }
 
     .wrap {
       max-width: 600px;
       width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
 
-    .card {
+    .header {
       background-color: #fff;
       border: 1px solid #ccc;
       border-radius: 8px;
@@ -38,6 +40,7 @@
       margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       text-align: center;
+      flex-shrink: 0;
     }
 
     h1 {
@@ -49,6 +52,16 @@
     .form-group {
       display: flex;
       flex-direction: column;
+      margin-bottom: 10px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
       margin-bottom: 10px;
     }
 
@@ -65,6 +78,13 @@
       font-size: 14px;
       outline: none;
       transition: border-color 0.3s;
+      max-width: 100%;
+      width: 100%;
+      text-transform: lowercase;
+    }
+
+    input[type="text"].uppercase {
+      text-transform: uppercase;
     }
 
     input:focus {
@@ -94,6 +114,10 @@
     }
 
     .password-list {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -110,26 +134,11 @@
       position: relative;
       cursor: pointer;
       user-select: none;
-      touch-action: none;
+      touch-action: pan-y;
+      flex-shrink: 0;
     }
 
-    .password-item.dragging {
-      opacity: 0.5;
-      transform: translateX(0);
-      transition: transform 0.3s;
-    }
-
-    .password-item.dragging-right {
-      transform: translateX(50px);
-      background-color: #ffcccc;
-    }
-
-    .password-item.dragging-left {
-      transform: translateX(-50px);
-      background-color: #ccffcc;
-    }
-
-    .password-item div {
+    .password-item-content {
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -142,6 +151,11 @@
       color: #333;
       display: block;
       line-height: 1.5;
+    }
+
+    .service-span {
+      font-size: 22px;
+      font-weight: bold;
     }
 
     .password-field {
@@ -157,13 +171,38 @@
       color: #333;
     }
 
-    .eye-icon {
-      width: 20px;
-      height: 20px;
+    .item-actions {
       position: absolute;
       bottom: 10px;
       right: 10px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .action-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: none;
       cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+      touch-action: manipulation;
+    }
+
+    .action-btn:hover {
+      background-color: #e0e0e0;
+    }
+
+    .eye-icon {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      touch-action: manipulation;
     }
 
     .loader {
@@ -214,23 +253,44 @@
       gap: 10px;
       justify-content: center;
     }
+
+    .modal-content .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-content .form-row .form-group {
+      flex: 1;
+      margin-bottom: 15px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .modal-content input.uppercase {
+      text-transform: uppercase;
+    }
   </style>  
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
+    <div class="header">
       <h1>Gerenciador de Senhas</h1>
       <div class="form-group">
-        <label for="site">Site ou Serviço</label>
-        <input type="text" id="site" placeholder="Ex: example.com">
+        <label for="site">Serviço</label>
+        <input type="text" id="site" class="uppercase" placeholder="Ex: example.com">
       </div>
-      <div class="form-group">
-        <label for="username">Usuário</label>
-        <input type="text" id="username" placeholder="Ex: usuario123">
-      </div>
-      <div class="form-group">
-        <label for="password">Senha</label>
-        <input type="text" id="password" placeholder="Ex: ********">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="username">Usuário</label>
+          <input type="text" id="username" placeholder="Ex: usuario123">
+        </div>
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="text" id="password" placeholder="Ex: ********">
+        </div>
       </div>
       <div class="btn-group">
         <button class="btn" id="addBtn">Adicionar</button>
@@ -238,7 +298,7 @@
       </div>
       <p class="loader" id="loader">Carregando...</p>
     </div>
-    <div class="card password-list" id="passwordList">
+    <div class="password-list" id="passwordList">
       <!-- Senhas serão listadas aqui -->
     </div>
   </div>
@@ -248,16 +308,18 @@
     <div class="modal-content">
       <h2>Editar Senha</h2>
       <div class="form-group">
-        <label for="editSite">Site ou Serviço</label>
-        <input type="text" id="editSite" placeholder="Ex: example.com">
+        <label for="editSite">Serviço</label>
+        <input type="text" id="editSite" class="uppercase" placeholder="Ex: example.com">
       </div>
-      <div class="form-group">
-        <label for="editUsername">Usuário</label>
-        <input type="text" id="editUsername" placeholder="Ex: usuario123">
-      </div>
-      <div class="form-group">
-        <label for="editPassword">Senha</label>
-        <input type="text" id="editPassword" placeholder="Ex: ********">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="editUsername">Usuário</label>
+          <input type="text" id="editUsername" placeholder="Ex: usuario123">
+        </div>
+        <div class="form-group">
+          <label for="editPassword">Senha</label>
+          <input type="text" id="editPassword" placeholder="Ex: ********">
+        </div>
       </div>
       <div class="btn-group">
         <button class="btn" id="saveEditBtn">Salvar</button>
@@ -301,10 +363,23 @@
     const cancelEditBtn = $('#cancelEditBtn');
     let currentEditId = null;
 
+    // Função para forçar uppercase no input de serviço
+    function forceUppercase(input) {
+      input.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase();
+      });
+      input.addEventListener('change', (e) => {
+        e.target.value = e.target.value.toUpperCase();
+      });
+    }
+
     async function init() {
       loader.style.display = 'block';
       addBtn.style.display = 'none';
       generateBtn.style.display = 'none';
+
+      forceUppercase(siteInput);
+      forceUppercase(editSiteInput);
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -340,7 +415,7 @@
       const user = auth.currentUser;
       if (!user) return;
 
-      const site = siteInput.value.trim();
+      const site = siteInput.value.trim().toUpperCase();
       const username = usernameInput.value.trim();
       const password = passwordInput.value.trim();
 
@@ -377,22 +452,59 @@
           item.className = 'password-item';
           item.dataset.id = doc.id;
           item.innerHTML = `
-            <div>
-              <span><strong>Usuário:</strong> ${data.username}</span>
-              <span><strong>Site:</strong> ${data.site}</span>
+            <div class="password-item-content">
+              <span class="service-span">${data.site}</span>
+              <span>${data.username}</span>
               <span class="password-field">
                 <span class="password-text" data-password="${data.password}">******</span>
+                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
               </span>
             </div>
-            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
+            <div class="item-actions">
+              <button class="action-btn eye-toggle-btn" title="Ocultar/Mostrar Senha">
+                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" width="20" height="20">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+              <button class="action-btn edit-btn" title="Editar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" width="20" height="20">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="action-btn delete-btn" title="Apagar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" width="20" height="20">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
           `;
           passwordList.appendChild(item);
-          addDragAndDrop(item);
           item.addEventListener('dblclick', () => copyPassword(data.password));
-          item.querySelector('.eye-icon').addEventListener('click', () => togglePasswordVisibility(item.querySelector('.eye-icon')));
+          const eyeIconInText = item.querySelector('.password-field .eye-icon');
+          eyeIconInText.style.display = 'none'; // Ocultar o ícone no texto, agora só no botão
+          const eyeToggleBtn = item.querySelector('.eye-toggle-btn');
+          eyeToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePasswordVisibility(eyeIconInText, eyeToggleBtn.querySelector('svg'));
+          });
+          const editBtn = item.querySelector('.edit-btn');
+          editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            editPassword(doc.id);
+          });
+          const deleteBtn = item.querySelector('.delete-btn');
+          deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deletePassword(doc.id);
+          });
         });
       } catch (e) {
         console.error("Erro ao carregar senhas:", e);
@@ -401,12 +513,13 @@
     }
 
     function generatePassword() {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
-      let password = '';
-      for (let i = 0; i < 12; i++) {
-        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      const chars = ['C', 'd', 'y', '_', '_', '1', '3', '7'];
+      // Embaralhar a ordem dos caracteres
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [chars[i], chars[j]] = [chars[j], chars[i]];
       }
-      passwordInput.value = password;
+      passwordInput.value = chars.join('');
     }
 
     async function copyPassword(password) {
@@ -422,8 +535,8 @@
     async function editPassword(id) {
       currentEditId = id;
       const item = $(`[data-id="${id}"]`);
-      const site = item.querySelector('span:nth-child(2)').textContent.replace('Site: ', '');
-      const username = item.querySelector('span:nth-child(1)').textContent.replace('Usuário: ', '');
+      const site = item.querySelector('span:nth-child(1)').textContent;
+      const username = item.querySelector('span:nth-child(2)').textContent;
       const password = item.querySelector('.password-text').dataset.password;
 
       editSiteInput.value = site;
@@ -436,7 +549,7 @@
       const user = auth.currentUser;
       if (!user || !currentEditId) return;
 
-      const site = editSiteInput.value.trim();
+      const site = editSiteInput.value.trim().toUpperCase();
       const username = editUsernameInput.value.trim();
       const password = editPasswordInput.value.trim();
 
@@ -477,96 +590,23 @@
       }
     }
 
-    function togglePasswordVisibility(icon) {
-      const passwordText = icon.parentElement.querySelector('.password-text');
+    function togglePasswordVisibility(eyeIconInText, toggleIcon) {
+      const passwordText = eyeIconInText.parentElement.querySelector('.password-text');
       const password = passwordText.dataset.password;
       if (passwordText.textContent === '******') {
         passwordText.textContent = password;
-        icon.innerHTML = `
+        toggleIcon.innerHTML = `
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
           <line x1="3" y1="3" x2="21" y2="21" stroke="#333" stroke-width="2"/>
         `;
       } else {
         passwordText.textContent = '******';
-        icon.innerHTML = `
+        toggleIcon.innerHTML = `
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
         `;
       }
-    }
-
-    function addDragAndDrop(item) {
-      let startX = 0;
-      let isDragging = false;
-
-      item.addEventListener('mousedown', (e) => {
-        startX = e.clientX;
-        isDragging = true;
-        item.classList.add('dragging');
-      });
-
-      item.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-          const deltaX = e.clientX - startX;
-          if (deltaX > 50) {
-            item.classList.add('dragging-right');
-            item.classList.remove('dragging-left');
-          } else if (deltaX < -50) {
-            item.classList.add('dragging-left');
-            item.classList.remove('dragging-right');
-          } else {
-            item.classList.remove('dragging-right', 'dragging-left');
-          }
-        }
-      });
-
-      item.addEventListener('mouseup', (e) => {
-        if (isDragging) {
-          const deltaX = e.clientX - startX;
-          if (deltaX > 50) {
-            deletePassword(item.dataset.id);
-          } else if (deltaX < -50) {
-            editPassword(item.dataset.id);
-          }
-          item.classList.remove('dragging', 'dragging-right', 'dragging-left');
-          isDragging = false;
-        }
-      });
-
-      item.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        isDragging = true;
-        item.classList.add('dragging');
-      });
-
-      item.addEventListener('touchmove', (e) => {
-        if (isDragging) {
-          const deltaX = e.touches[0].clientX - startX;
-          if (deltaX > 50) {
-            item.classList.add('dragging-right');
-            item.classList.remove('dragging-left');
-          } else if (deltaX < -50) {
-            item.classList.add('dragging-left');
-            item.classList.remove('dragging-right');
-          } else {
-            item.classList.remove('dragging-right', 'dragging-left');
-          }
-        }
-      });
-
-      item.addEventListener('touchend', (e) => {
-        if (isDragging) {
-          const deltaX = e.changedTouches[0].clientX - startX;
-          if (deltaX > 50) {
-            deletePassword(item.dataset.id);
-          } else if (deltaX < -50) {
-            editPassword(item.dataset.id);
-          }
-          item.classList.remove('dragging', 'dragging-right', 'dragging-left');
-          isDragging = false;
-        }
-      });
     }
 
     init();

@@ -64,6 +64,8 @@
       color: #333;
       cursor: pointer;
       transition: all 0.3s ease;
+      margin: 5px 0;
+      width: 100%;
     }
 
     .btn:hover {
@@ -84,7 +86,11 @@
     <div class="card">
       <h1>BEM-VINDO AO ÁREA96</h1>
       <p>Área de segurança de dados</p>
+
+      <button class="btn" id="gastosBtn">Gastos</button>
+      <button class="btn" id="senhasBtn">Senhas</button>
       <button class="btn" id="logoffBtn">Logoff</button>
+
       <p class="loader" id="loader">Carregando...</p>
     </div>
   </div>
@@ -92,7 +98,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
     import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-    import { createFloatingButtons } from "./floatingButtons.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
@@ -109,13 +114,15 @@
 
     const $ = s => document.querySelector(s);
     const logoffBtn = $('#logoffBtn');
+    const gastosBtn = $('#gastosBtn');
+    const senhasBtn = $('#senhasBtn');
     const loader = $('#loader');
 
     async function init() {
       loader.style.display = 'block';
       logoffBtn.style.display = 'none';
-
-      createFloatingButtons(); // Adiciona os botões flutuantes
+      gastosBtn.style.display = 'none';
+      senhasBtn.style.display = 'none';
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -124,6 +131,8 @@
           if (docSnap.exists() && docSnap.data().loginOK === true) {
             loader.style.display = 'none';
             logoffBtn.style.display = 'inline-block';
+            gastosBtn.style.display = 'inline-block';
+            senhasBtn.style.display = 'inline-block';
           } else {
             window.location.href = "login.html";
           }
@@ -148,6 +157,14 @@
           console.error("Erro ao deslogar:", e);
           alert("Erro ao fazer logoff. Tente novamente.");
         }
+      });
+
+      gastosBtn.addEventListener('click', () => {
+        window.location.href = "gastos.html";
+      });
+
+      senhasBtn.addEventListener('click', () => {
+        window.location.href = "senhas.html";
       });
     }
 

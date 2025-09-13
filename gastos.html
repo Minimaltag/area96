@@ -32,7 +32,7 @@
 
     /* Reset */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
+    html, body { }
 
     /* Base */
     body {
@@ -44,6 +44,7 @@
       line-height: 1.4;
       overflow: auto;
       position: relative;
+      min-height: 100vh;
     }
 
     /* Layout */
@@ -51,8 +52,8 @@
       max-width: 720px;
       margin: 0 auto;
       padding: 16px;
-      padding-bottom: 60px;
       z-index: 10;
+      min-height: calc(100vh - 32px);
     }
 
     /* Header */
@@ -234,8 +235,7 @@
     .list {
       display: grid;
       gap: 10px;
-      margin-top: 12px;
-      max-height: 400px;
+      max-height: calc(100vh - 200px);
       overflow-y: auto;
     }
     .item {
@@ -330,46 +330,6 @@
       display: flex;
       gap: 10px;
       justify-content: flex-end;
-    }
-
-    /* Botões flutuantes (navegação) */
-    .floating-buttons {
-      position: fixed;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 16px;
-      z-index: 20;
-      transition: opacity 0.2s ease; /* Smooth transition for hiding */
-    }
-    .floating-buttons.hidden {
-      opacity: 0;
-      pointer-events: none; /* Disable interactions when hidden */
-    }
-    .floating-btn {
-      width: 58px;
-      height: 58px;
-      background: var(--card);
-      border-radius: 50%;
-      border: var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-    .floating-btn:hover {
-      transform: scale(1.05);
-      background: #f2f2f2;
-    }
-    .floating-btn:active {
-      transform: scale(0.95);
-    }
-    .floating-btn svg {
-      width: 28px;
-      height: 28px;
-      stroke: var(--text);
-      fill: none;
     }
   </style>
 </head>
@@ -483,7 +443,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-    import { createFloatingButtons } from "./floatingButtons.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
@@ -754,21 +713,9 @@
           $('#menu').classList.remove('active');
         }
       });
-
-      // Hide floating buttons when keyboard is open, except for #month
-      const inputs = Array.from($$('input, select')).filter(input => input.id !== 'month');
-      inputs.forEach(input => {
-        input.addEventListener('focus', () => {
-          $('.floating-buttons').classList.add('hidden');
-        });
-        input.addEventListener('blur', () => {
-          $('.floating-buttons').classList.remove('hidden');
-        });
-      });
     }
 
     async function init() {
-      createFloatingButtons();
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDocRef = doc(dbFire, "users", user.uid);

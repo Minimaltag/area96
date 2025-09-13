@@ -270,7 +270,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-    import { createFloatingButtons } from "./floatingButtons.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
@@ -306,8 +305,6 @@
       loader.style.display = 'block';
       addBtn.style.display = 'none';
       generateBtn.style.display = 'none';
-
-      createFloatingButtons();
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {

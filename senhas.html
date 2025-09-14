@@ -125,7 +125,7 @@
       flex-direction: column;
       gap: 10px;
       padding: 0 20px;
-      margin-bottom: 20px; /* Espaço no rodapé */
+      margin-bottom: 20px;
     }
 
     .password-item {
@@ -282,6 +282,30 @@
     #masterPasswordModal input[type="password"] {
       text-transform: none;
     }
+
+    /* Estilo para botões minimalistas no modal de senha master */
+    .modal-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #ddd;
+      background-color: #fff;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+    }
+
+    .modal-btn:hover {
+      background-color: #e0e0e0;
+    }
+
+    .modal-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: #666;
+    }
   </style>  
 </head>
 <body>
@@ -341,14 +365,47 @@
   <!-- Modal for Master Password -->
   <div class="modal" id="masterPasswordModal">
     <div class="modal-content">
-      <h2 id="masterPasswordTitle">Crie uma Senha Master</h2>
+      <h2>Digite a Senha Master</h2>
       <div class="form-group">
         <label for="masterPassword">Senha</label>
         <input type="password" id="masterPassword" placeholder="Digite sua senha">
       </div>
       <div class="btn-group">
-        <button class="btn" id="submitMasterPasswordBtn">Confirmar</button>
-        <button class="btn" id="cancelMasterPasswordBtn">Cancelar</button>
+        <button class="modal-btn" id="submitMasterPasswordBtn" title="Confirmar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 12l3 3 5-6" />
+          </svg>
+        </button>
+        <button class="modal-btn" id="cancelMasterPasswordBtn" title="Cancelar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        </button>
+        <button class="modal-btn" id="recoverBtn" title="Recuperar Senha" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6 L15 9 L9 9 Z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Recovery -->
+  <div class="modal" id="recoveryModal">
+    <div class="modal-content">
+      <h2>Recuperação de Senha</h2>
+      <p id="recoveryQuestionText">Pergunta: Carregando...</p>
+      <div class="form-group">
+        <label for="recoveryAnswer">Resposta</label>
+        <input type="text" id="recoveryAnswer" placeholder="Digite a resposta">
+      </div>
+      <div class="btn-group">
+        <button class="btn" id="submitRecoveryBtn">Verificar</button>
+        <button class="btn" id="cancelRecoveryBtn">Cancelar</button>
       </div>
     </div>
   </div>
@@ -390,12 +447,19 @@
     const masterPasswordInput = $('#masterPassword');
     const submitMasterPasswordBtn = $('#submitMasterPasswordBtn');
     const cancelMasterPasswordBtn = $('#cancelMasterPasswordBtn');
-    const masterPasswordTitle = $('#masterPasswordTitle');
+    const recoverBtn = $('#recoverBtn');
+    const recoveryModal = $('#recoveryModal');
+    const recoveryQuestionText = $('#recoveryQuestionText');
+    const recoveryAnswerInput = $('#recoveryAnswer');
+    const submitRecoveryBtn = $('#submitRecoveryBtn');
+    const cancelRecoveryBtn = $('#cancelRecoveryBtn');
     let currentEditId = null;
     let pendingActionCallback = null;
     let encryptionKey = null;
     let isCreatingMaster = false;
     let masterHash = null;
+    let recoveryQuestion = null;
+    let recoveryAnswerHash = null;
 
     // Função para forçar uppercase no input de serviço
     function forceUppercase(input) {
@@ -429,77 +493,6 @@
       }
     }
 
-    // Função para registrar PIN ou biometria do dispositivo
-    async function registerDevicePin() {
-      if (!navigator.credentials || !window.PublicKeyCredential) {
-        alert("Autenticação biométrica ou PIN não suportada neste navegador ou dispositivo.");
-        return false;
-      }
-
-      const publicKey = {
-        challenge: crypto.getRandomValues(new Uint8Array(32)),
-        rp: { name: "Área96 Gerenciador" },
-        user: {
-          id: crypto.getRandomValues(new Uint8Array(16)),
-          name: auth.currentUser.uid,
-          displayName: "Usuário Área96"
-        },
-        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-        authenticatorSelection: { userVerification: "required" } // Exige verificação (biometria ou PIN)
-      };
-
-      try {
-        const credential = await navigator.credentials.create({ publicKey });
-        const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-        await setDoc(doc(dbFire, "users", auth.currentUser.uid, "pins", credentialId), {
-          id: credentialId
-        });
-        console.log("PIN ou autenticação biométrica registrada com sucesso!");
-        return true;
-      } catch (err) {
-        console.error("Erro ao registrar autenticação biométrica ou PIN:", err);
-        alert("Falha ao registrar autenticação biométrica ou PIN. Tente novamente na próxima sessão.");
-        return false;
-      }
-    }
-
-    // Função para autenticar com PIN ou biometria do dispositivo
-    async function authenticateWithDevicePin() {
-      if (!navigator.credentials || !window.PublicKeyCredential) {
-        alert("Autenticação biométrica ou PIN não suportada neste navegador ou dispositivo.");
-        return false;
-      }
-
-      try {
-        const userDocRef = doc(dbFire, "users", auth.currentUser.uid);
-        const pinCol = collection(userDocRef, "pins");
-        const pinSnapshot = await getDocs(pinCol);
-        const credentials = pinSnapshot.docs.map(doc => ({
-          type: "public-key",
-          id: Uint8Array.from(atob(doc.data().id), c => c.charCodeAt(0))
-        }));
-
-        if (credentials.length === 0) {
-          console.warn("Nenhuma credencial de PIN ou biometria registrada.");
-          return false;
-        }
-
-        const publicKey = {
-          challenge: crypto.getRandomValues(new Uint8Array(32)),
-          allowCredentials: credentials,
-          userVerification: "required" // Exige verificação (biometria ou PIN)
-        };
-
-        const assertion = await navigator.credentials.get({ publicKey });
-        console.log("Autenticado com PIN ou biometria do dispositivo!");
-        return true;
-      } catch (err) {
-        console.error("Falha na autenticação com PIN ou biometria:", err);
-        alert("Falha na autenticação com PIN ou biometria. Tente novamente na próxima sessão.");
-        return false;
-      }
-    }
-
     async function init() {
       loader.style.display = 'block';
       addBtn.style.display = 'none';
@@ -513,31 +506,25 @@
           const userDocRef = doc(dbFire, "users", user.uid);
           const docSnap = await getDoc(userDocRef);
           if (docSnap.exists() && docSnap.data().loginOK === true) {
-            // Verificar e configurar senha master
-            const userDocSnap = await getDoc(userDocRef);
-            masterHash = userDocSnap.data()?.masterPasswordHash;
+            const userData = docSnap.data();
+            masterHash = userData.masterPasswordHash;
+            recoveryQuestion = userData.recoveryQuestion;
+            recoveryAnswerHash = userData.recoveryAnswerHash;
+
+            if (!recoveryQuestion || !recoveryAnswerHash) {
+              alert("Configuração de recuperação não encontrada no Firebase. Configure usando a página de configuração de recuperação.");
+              // Opcional: redirecionar para a página de configuração de recuperação
+              // window.location.href = "config-recovery.html";
+            }
+
             isCreatingMaster = !masterHash;
-            masterPasswordTitle.textContent = isCreatingMaster ? "Crie uma Senha Master" : "Digite a Senha Master";
+            $('#masterPasswordModal h2').textContent = isCreatingMaster ? "Crie uma Senha Master" : "Digite a Senha Master";
+            if (!isCreatingMaster) {
+              recoverBtn.style.display = 'inline-flex';
+            } else {
+              recoverBtn.style.display = 'none';
+            }
             pendingActionCallback = async () => {
-              if (isCreatingMaster) {
-                // Exige autenticação biométrica ou PIN para criar a senha master
-                const pinRegistered = await registerDevicePin();
-                if (!pinRegistered) {
-                  masterPasswordModal.style.display = 'none';
-                  masterPasswordInput.value = '';
-                  pendingActionCallback = null;
-                  return;
-                }
-              } else {
-                // Para login, autentica com PIN ou biometria
-                const authenticated = await authenticateWithDevicePin();
-                if (!authenticated) {
-                  masterPasswordModal.style.display = 'none';
-                  masterPasswordInput.value = '';
-                  pendingActionCallback = null;
-                  return;
-                }
-              }
               loader.style.display = 'none';
               addBtn.style.display = 'inline-block';
               generateBtn.style.display = 'inline-block';
@@ -597,6 +584,45 @@
             alert("Senha incorreta. Tente novamente.");
             masterPasswordInput.value = '';
           }
+        }
+      });
+      recoverBtn.addEventListener('click', () => {
+        if (!recoveryQuestion || !recoveryAnswerHash) {
+          alert("Configuração de recuperação não encontrada. Configure no Firebase ou na página de configuração.");
+          return;
+        }
+        masterPasswordModal.style.display = 'none';
+        recoveryQuestionText.textContent = `Pergunta: ${recoveryQuestion}`;
+        recoveryModal.style.display = 'flex';
+        recoveryAnswerInput.value = '';
+        recoveryAnswerInput.focus();
+      });
+      cancelRecoveryBtn.addEventListener('click', () => {
+        recoveryModal.style.display = 'none';
+        recoveryAnswerInput.value = '';
+        masterPasswordModal.style.display = 'flex';
+      });
+      submitRecoveryBtn.addEventListener('click', () => {
+        const answer = recoveryAnswerInput.value.trim().toLowerCase();
+        if (!answer) {
+          alert("Digite uma resposta!");
+          return;
+        }
+        const inputHash = CryptoJS.SHA256(answer).toString();
+        if (inputHash === recoveryAnswerHash) {
+          alert("Resposta correta! Agora você pode redefinir a senha master.");
+          recoveryModal.style.display = 'none';
+          recoveryAnswerInput.value = '';
+          isCreatingMaster = true;
+          $('#masterPasswordModal h2').textContent = "Redefina a Senha Master";
+          recoverBtn.style.display = 'none';
+          masterPasswordModal.style.display = 'flex';
+          masterPasswordInput.value = '';
+          masterPasswordInput.focus();
+        } else {
+          alert("Resposta incorreta. Tente novamente.");
+          recoveryAnswerInput.value = '';
+          recoveryAnswerInput.focus();
         }
       });
     }

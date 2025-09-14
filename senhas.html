@@ -74,7 +74,7 @@
       margin-bottom: 5px;
     }
 
-    input {
+    input, textarea {
       padding: 8px;
       border: 1px solid #ccc;
       border-radius: 4px;
@@ -83,15 +83,23 @@
       transition: border-color 0.3s;
       max-width: 100%;
       width: 100%;
-      text-transform: lowercase;
     }
 
     input[type="text"].uppercase {
       text-transform: uppercase;
     }
 
-    input:focus {
+    input[type="text"].no-transform {
+      text-transform: none;
+    }
+
+    input:focus, textarea:focus {
       border-color: #666;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
     }
 
     .btn-group {
@@ -126,6 +134,7 @@
       gap: 10px;
       padding: 0 20px;
       margin-bottom: 20px;
+      overscroll-behavior: contain;
     }
 
     .password-item {
@@ -134,7 +143,7 @@
       border-radius: 4px;
       padding: 15px;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       position: relative;
       cursor: pointer;
@@ -210,6 +219,19 @@
       touch-action: manipulation;
     }
 
+    .note-icon-container {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      cursor: pointer;
+      z-index: 10; /* Adicionado para garantir que o ícone seja clicável */
+    }
+
+    .note-icon {
+      width: 20px;
+      height: 20px;
+    }
+
     .loader {
       display: none;
       text-align: center;
@@ -241,6 +263,7 @@
       width: 90%;
       text-align: center;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      position: relative;
     }
 
     .modal-content h2 {
@@ -269,13 +292,29 @@
       margin-bottom: 15px;
     }
 
-    .modal-content input {
+    .modal-content input,
+    .modal-content textarea {
       width: 100%;
       max-width: 100%;
     }
 
     .modal-content input.uppercase {
       text-transform: uppercase;
+    }
+
+    .modal-content textarea {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .modal-content textarea:focus {
+      border-color: #666;
     }
 
     /* Modal para Senha Master */
@@ -306,6 +345,45 @@
       height: 20px;
       stroke: #666;
     }
+
+    /* Modal para Observação */
+    #noteModal .modal-content {
+      text-align: left;
+      padding-top: 40px;
+    }
+
+    #noteModal .modal-content p {
+      font-size: 14px;
+      color: #333;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .close-note-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+
+    .close-note-btn:hover {
+      background-color: #e0e0e0;
+    }
+
+    .close-note-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: #666;
+    }
   </style>  
 </head>
 <body>
@@ -323,8 +401,12 @@
         </div>
         <div class="form-group">
           <label for="password">Senha</label>
-          <input type="text" id="password" placeholder="Ex: ********">
+          <input type="text" id="password" class="no-transform" placeholder="Ex: ********">
         </div>
+      </div>
+      <div class="form-group">
+        <label for="observation">Observação</label>
+        <textarea id="observation" placeholder="Ex: Detalhes adicionais sobre a conta"></textarea>
       </div>
       <div class="btn-group">
         <button class="btn" id="addBtn">Adicionar</button>
@@ -352,8 +434,12 @@
         </div>
         <div class="form-group">
           <label for="editPassword">Senha</label>
-          <input type="text" id="editPassword" placeholder="Ex: ********">
+          <input type="text" id="editPassword" class="no-transform" placeholder="Ex: ********">
         </div>
+      </div>
+      <div class="form-group">
+        <label for="editObservation">Observação</label>
+        <textarea id="editObservation" placeholder="Ex: Detalhes adicionais sobre a conta"></textarea>
       </div>
       <div class="btn-group">
         <button class="btn" id="saveEditBtn">Salvar</button>
@@ -388,6 +474,20 @@
     </div>
   </div>
 
+  <!-- Modal for Observation Note -->
+  <div class="modal" id="noteModal">
+    <div class="modal-content">
+      <button class="close-note-btn" id="closeNoteBtn" title="Fechar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+      <h2>Observação</h2>
+      <p id="noteContent"></p>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
@@ -411,6 +511,7 @@
     const siteInput = $('#site');
     const usernameInput = $('#username');
     const passwordInput = $('#password');
+    const observationInput = $('#observation');
     const addBtn = $('#addBtn');
     const generateBtn = $('#generateBtn');
     const passwordList = $('#passwordList');
@@ -419,12 +520,16 @@
     const editSiteInput = $('#editSite');
     const editUsernameInput = $('#editUsername');
     const editPasswordInput = $('#editPassword');
+    const editObservationInput = $('#editObservation');
     const saveEditBtn = $('#saveEditBtn');
     const cancelEditBtn = $('#cancelEditBtn');
     const masterPasswordModal = $('#masterPasswordModal');
     const masterPasswordInput = $('#masterPassword');
     const submitMasterPasswordBtn = $('#submitMasterPasswordBtn');
     const cancelMasterPasswordBtn = $('#cancelMasterPasswordBtn');
+    const noteModal = $('#noteModal');
+    const noteContent = $('#noteContent');
+    const closeNoteBtn = $('#closeNoteBtn');
     let currentEditId = null;
     let pendingActionCallback = null;
     let encryptionKey = null;
@@ -543,6 +648,7 @@
           }
         }
       });
+      closeNoteBtn.addEventListener('click', () => noteModal.style.display = 'none');
     }
 
     async function addPassword() {
@@ -552,25 +658,29 @@
       const site = siteInput.value.trim().toUpperCase();
       const username = usernameInput.value.trim();
       const password = passwordInput.value.trim();
+      const observation = observationInput.value.trim();
 
       if (!site || !username || !password) {
-        alert("Preencha todos os campos!");
+        alert("Preencha todos os campos obrigatórios!");
         return;
       }
 
       try {
         const encryptedUsername = CryptoJS.AES.encrypt(username, encryptionKey).toString();
         const encryptedPassword = CryptoJS.AES.encrypt(password, encryptionKey).toString();
+        const encryptedObservation = observation ? CryptoJS.AES.encrypt(observation, encryptionKey).toString() : '';
         const passwordDocRef = doc(collection(dbFire, `senhas`));
         await setDoc(passwordDocRef, {
           site,
           username: encryptedUsername,
           password: encryptedPassword,
+          observation: encryptedObservation,
           createdAt: new Date()
         });
         siteInput.value = '';
         usernameInput.value = '';
         passwordInput.value = '';
+        observationInput.value = '';
         loadPasswords();
       } catch (e) {
         console.error("Erro ao adicionar senha:", e);
@@ -587,10 +697,18 @@
           const data = doc.data();
           const decryptedUsername = CryptoJS.AES.decrypt(data.username, encryptionKey).toString(CryptoJS.enc.Utf8);
           const decryptedPassword = CryptoJS.AES.decrypt(data.password, encryptionKey).toString(CryptoJS.enc.Utf8);
+          const decryptedObservation = data.observation ? CryptoJS.AES.decrypt(data.observation, encryptionKey).toString(CryptoJS.enc.Utf8) : '';
           const item = document.createElement('div');
           item.className = 'password-item';
           item.dataset.id = doc.id;
           item.innerHTML = `
+            <div class="note-icon-container" data-observation="${decryptedObservation}">
+              <svg class="note-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.5 9.5a2.5 2.5 0 1 1 4 2c-.5.5-1 1-1 2"/>
+                <path d="M12 17h.01"/>
+              </svg>
+            </div>
             <div class="password-item-content">
               <span class="service-span">${data.site}</span>
               <span>${decryptedUsername}</span>
@@ -644,6 +762,16 @@
             e.stopPropagation();
             deletePassword(doc.id);
           });
+          const noteIconContainer = item.querySelector('.note-icon-container');
+          if (decryptedObservation) {
+            noteIconContainer.addEventListener('click', (e) => {
+              e.stopPropagation();
+              console.log('Ícone de observação clicado, observação:', decryptedObservation); // Log de depuração
+              showNoteModal(decryptedObservation);
+            });
+          } else {
+            noteIconContainer.style.display = 'none';
+          }
         });
       } catch (e) {
         console.error("Erro ao carregar senhas:", e);
@@ -673,13 +801,15 @@
     async function openEditModal(id) {
       currentEditId = id;
       const item = $(`[data-id="${id}"]`);
-      const site = item.querySelector('span:nth-child(1)').textContent;
+      const site = item.querySelector('.service-span').textContent; // Alterado para usar .service-span
       const username = item.querySelector('span:nth-child(2)').textContent;
       const password = item.querySelector('.password-text').dataset.password;
+      const observation = item.querySelector('.note-icon-container').dataset.observation || '';
 
       editSiteInput.value = site;
       editUsernameInput.value = username;
       editPasswordInput.value = password;
+      editObservationInput.value = observation;
       editModal.style.display = 'flex';
     }
 
@@ -690,20 +820,23 @@
       const site = editSiteInput.value.trim().toUpperCase();
       const username = editUsernameInput.value.trim();
       const password = editPasswordInput.value.trim();
+      const observation = editObservationInput.value.trim();
 
       if (!site || !username || !password) {
-        alert("Preencha todos os campos!");
+        alert("Preencha todos os campos obrigatórios!");
         return;
       }
 
       try {
         const encryptedUsername = CryptoJS.AES.encrypt(username, encryptionKey).toString();
         const encryptedPassword = CryptoJS.AES.encrypt(password, encryptionKey).toString();
+        const encryptedObservation = observation ? CryptoJS.AES.encrypt(observation, encryptionKey).toString() : '';
         const passwordDocRef = doc(dbFire, `senhas`, currentEditId);
         await updateDoc(passwordDocRef, {
           site,
           username: encryptedUsername,
           password: encryptedPassword,
+          observation: encryptedObservation,
           createdAt: new Date()
         });
         editModal.style.display = 'none';
@@ -747,6 +880,11 @@
           <circle cx="12" cy="12" r="3"/>
         `;
       }
+    }
+
+    function showNoteModal(note) {
+      noteContent.textContent = note;
+      noteModal.style.display = 'flex';
     }
 
     init();

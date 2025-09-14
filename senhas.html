@@ -384,28 +384,6 @@
             <line x1="9" y1="9" x2="15" y2="15" />
           </svg>
         </button>
-        <button class="modal-btn" id="recoverBtn" title="Recuperar Senha" style="display: none;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6 L15 9 L9 9 Z" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal for Recovery -->
-  <div class="modal" id="recoveryModal">
-    <div class="modal-content">
-      <h2>Recuperação de Senha</h2>
-      <p id="recoveryQuestionText">Pergunta: Carregando...</p>
-      <div class="form-group">
-        <label for="recoveryAnswer">Resposta</label>
-        <input type="text" id="recoveryAnswer" placeholder="Digite a resposta">
-      </div>
-      <div class="btn-group">
-        <button class="btn" id="submitRecoveryBtn">Verificar</button>
-        <button class="btn" id="cancelRecoveryBtn">Cancelar</button>
       </div>
     </div>
   </div>
@@ -447,19 +425,11 @@
     const masterPasswordInput = $('#masterPassword');
     const submitMasterPasswordBtn = $('#submitMasterPasswordBtn');
     const cancelMasterPasswordBtn = $('#cancelMasterPasswordBtn');
-    const recoverBtn = $('#recoverBtn');
-    const recoveryModal = $('#recoveryModal');
-    const recoveryQuestionText = $('#recoveryQuestionText');
-    const recoveryAnswerInput = $('#recoveryAnswer');
-    const submitRecoveryBtn = $('#submitRecoveryBtn');
-    const cancelRecoveryBtn = $('#cancelRecoveryBtn');
     let currentEditId = null;
     let pendingActionCallback = null;
     let encryptionKey = null;
     let isCreatingMaster = false;
     let masterHash = null;
-    let recoveryQuestion = null;
-    let recoveryAnswerHash = null;
 
     // Função para forçar uppercase no input de serviço
     function forceUppercase(input) {
@@ -508,22 +478,9 @@
           if (docSnap.exists() && docSnap.data().loginOK === true) {
             const userData = docSnap.data();
             masterHash = userData.masterPasswordHash;
-            recoveryQuestion = userData.recoveryQuestion;
-            recoveryAnswerHash = userData.recoveryAnswerHash;
-
-            if (!recoveryQuestion || !recoveryAnswerHash) {
-              alert("Configuração de recuperação não encontrada no Firebase. Configure usando a página de configuração de recuperação.");
-              // Opcional: redirecionar para a página de configuração de recuperação
-              // window.location.href = "config-recovery.html";
-            }
 
             isCreatingMaster = !masterHash;
             $('#masterPasswordModal h2').textContent = isCreatingMaster ? "Crie uma Senha Master" : "Digite a Senha Master";
-            if (!isCreatingMaster) {
-              recoverBtn.style.display = 'inline-flex';
-            } else {
-              recoverBtn.style.display = 'none';
-            }
             pendingActionCallback = async () => {
               loader.style.display = 'none';
               addBtn.style.display = 'inline-block';
@@ -584,45 +541,6 @@
             alert("Senha incorreta. Tente novamente.");
             masterPasswordInput.value = '';
           }
-        }
-      });
-      recoverBtn.addEventListener('click', () => {
-        if (!recoveryQuestion || !recoveryAnswerHash) {
-          alert("Configuração de recuperação não encontrada. Configure no Firebase ou na página de configuração.");
-          return;
-        }
-        masterPasswordModal.style.display = 'none';
-        recoveryQuestionText.textContent = `Pergunta: ${recoveryQuestion}`;
-        recoveryModal.style.display = 'flex';
-        recoveryAnswerInput.value = '';
-        recoveryAnswerInput.focus();
-      });
-      cancelRecoveryBtn.addEventListener('click', () => {
-        recoveryModal.style.display = 'none';
-        recoveryAnswerInput.value = '';
-        masterPasswordModal.style.display = 'flex';
-      });
-      submitRecoveryBtn.addEventListener('click', () => {
-        const answer = recoveryAnswerInput.value.trim().toLowerCase();
-        if (!answer) {
-          alert("Digite uma resposta!");
-          return;
-        }
-        const inputHash = CryptoJS.SHA256(answer).toString();
-        if (inputHash === recoveryAnswerHash) {
-          alert("Resposta correta! Agora você pode redefinir a senha master.");
-          recoveryModal.style.display = 'none';
-          recoveryAnswerInput.value = '';
-          isCreatingMaster = true;
-          $('#masterPasswordModal h2').textContent = "Redefina a Senha Master";
-          recoverBtn.style.display = 'none';
-          masterPasswordModal.style.display = 'flex';
-          masterPasswordInput.value = '';
-          masterPasswordInput.focus();
-        } else {
-          alert("Resposta incorreta. Tente novamente.");
-          recoveryAnswerInput.value = '';
-          recoveryAnswerInput.focus();
         }
       });
     }

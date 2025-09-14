@@ -29,7 +29,7 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      min-height: 100vh; /* Alterado de height para min-height */
     }
 
     .header {
@@ -132,8 +132,8 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 0 20px;
-      margin-bottom: 20px;
+      padding: 0 20px 20px; /* Adicionado padding-bottom para garantir visibilidade do último card */
+      margin-bottom: 0; /* Removido margin-bottom */
       overscroll-behavior: contain;
     }
 
@@ -224,7 +224,7 @@
       bottom: 10px;
       left: 10px;
       cursor: pointer;
-      z-index: 10; /* Adicionado para garantir que o ícone seja clicável */
+      z-index: 10;
     }
 
     .note-icon {
@@ -766,7 +766,7 @@
           if (decryptedObservation) {
             noteIconContainer.addEventListener('click', (e) => {
               e.stopPropagation();
-              console.log('Ícone de observação clicado, observação:', decryptedObservation); // Log de depuração
+              console.log('Ícone de observação clicado, observação:', decryptedObservation);
               showNoteModal(decryptedObservation);
             });
           } else {
@@ -801,7 +801,7 @@
     async function openEditModal(id) {
       currentEditId = id;
       const item = $(`[data-id="${id}"]`);
-      const site = item.querySelector('.service-span').textContent; // Alterado para usar .service-span
+      const site = item.querySelector('.service-span').textContent;
       const username = item.querySelector('span:nth-child(2)').textContent;
       const password = item.querySelector('.password-text').dataset.password;
       const observation = item.querySelector('.note-icon-container').dataset.observation || '';

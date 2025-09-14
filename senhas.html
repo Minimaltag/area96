@@ -7,6 +7,7 @@
   <title>Área96 - Gerenciador de Senhas</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -124,6 +125,7 @@
       flex-direction: column;
       gap: 10px;
       padding: 0 20px;
+      margin-bottom: 20px; /* Espaço no rodapé */
     }
 
     .password-item {
@@ -275,6 +277,11 @@
     .modal-content input.uppercase {
       text-transform: uppercase;
     }
+
+    /* Modal para Senha Master */
+    #masterPasswordModal input[type="password"] {
+      text-transform: none;
+    }
   </style>  
 </head>
 <body>
@@ -331,6 +338,21 @@
     </div>
   </div>
 
+  <!-- Modal for Master Password -->
+  <div class="modal" id="masterPasswordModal">
+    <div class="modal-content">
+      <h2>Digite a Senha Master</h2>
+      <div class="form-group">
+        <label for="masterPassword">Senha</label>
+        <input type="password" id="masterPassword" placeholder="Digite sua senha">
+      </div>
+      <div class="btn-group">
+        <button class="btn" id="submitMasterPasswordBtn">Confirmar</button>
+        <button class="btn" id="cancelMasterPasswordBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
@@ -364,7 +386,15 @@
     const editPasswordInput = $('#editPassword');
     const saveEditBtn = $('#saveEditBtn');
     const cancelEditBtn = $('#cancelEditBtn');
+    const masterPasswordModal = $('#masterPasswordModal');
+    const masterPasswordInput = $('#masterPassword');
+    const submitMasterPasswordBtn = $('#submitMasterPasswordBtn');
+    const cancelMasterPasswordBtn = $('#cancelMasterPasswordBtn');
     let currentEditId = null;
+    let pendingActionCallback = null;
+    let encryptionKey = null;
+    let isCreatingMaster = false;
+    let masterHash = null;
 
     // Função para forçar uppercase no input de serviço
     function forceUppercase(input) {
@@ -374,6 +404,97 @@
       input.addEventListener('change', (e) => {
         e.target.value = e.target.value.toUpperCase();
       });
+    }
+
+    // Função para autenticar com senha master
+    async function authenticateWithMasterPassword(inputPassword) {
+      const user = auth.currentUser;
+      if (!user) return false;
+
+      try {
+        const userDoc = await getDoc(doc(dbFire, "users", user.uid));
+        const storedHash = userDoc.data()?.masterPasswordHash;
+        if (!storedHash) {
+          alert("Nenhuma senha master registrada. Configure primeiro.");
+          return false;
+        }
+
+        const inputHash = CryptoJS.SHA256(inputPassword).toString();
+        return inputHash === storedHash;
+      } catch (err) {
+        console.error("Erro ao verificar senha master:", err);
+        alert("Erro ao verificar senha master. Tente novamente.");
+        return false;
+      }
+    }
+
+    // Função para autenticar com PIN do dispositivo (se disponível)
+    async function authenticateWithDevicePin() {
+      if (!navigator.credentials || !window.PublicKeyCredential) {
+        console.warn("WebAuthn não suportado neste navegador.");
+        return false;
+      }
+
+      try {
+        const userDocRef = doc(dbFire, "users", auth.currentUser.uid);
+        const pinCol = collection(userDocRef, "pins");
+        const pinSnapshot = await getDocs(pinCol);
+        const credentials = pinSnapshot.docs.map(doc => ({
+          type: "public-key",
+          id: Uint8Array.from(atob(doc.data().id), c => c.charCodeAt(0))
+        }));
+
+        if (credentials.length === 0) {
+          console.warn("Nenhuma credencial de PIN registrada.");
+          return false;
+        }
+
+        const publicKey = {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          allowCredentials: credentials,
+          userVerification: "preferred" // Permite PIN ou senha
+        };
+
+        const assertion = await navigator.credentials.get({ publicKey });
+        console.log("Autenticado com PIN do dispositivo!");
+        return true;
+      } catch (err) {
+        console.error("Falha na autenticação com PIN:", err);
+        return false;
+      }
+    }
+
+    // Função para registrar PIN (opcional, chamado após login)
+    async function registerDevicePin() {
+      if (!navigator.credentials || !window.PublicKeyCredential) {
+        console.warn("WebAuthn não suportado neste navegador.");
+        return false;
+      }
+
+      const publicKey = {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: { name: "Área96 Gerenciador" },
+        user: {
+          id: crypto.getRandomValues(new Uint8Array(16)),
+          name: auth.currentUser.uid,
+          displayName: "Usuário Área96"
+        },
+        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+        authenticatorSelection: { userVerification: "preferred" }
+      };
+
+      try {
+        const credential = await navigator.credentials.create({ publicKey });
+        const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+        await setDoc(doc(dbFire, "users", auth.currentUser.uid, "pins", credentialId), {
+          id: credentialId
+        });
+        console.log("PIN do dispositivo registrado com sucesso!");
+        return true;
+      } catch (err) {
+        console.error("Erro ao registrar PIN:", err);
+        return false;
+      }
     }
 
     async function init() {
@@ -389,10 +510,21 @@
           const userDocRef = doc(dbFire, "users", user.uid);
           const docSnap = await getDoc(userDocRef);
           if (docSnap.exists() && docSnap.data().loginOK === true) {
-            loader.style.display = 'none';
-            addBtn.style.display = 'inline-block';
-            generateBtn.style.display = 'inline-block';
-            loadPasswords();
+            // Verificar e configurar senha master
+            const userDocSnap = await getDoc(userDocRef);
+            masterHash = userDocSnap.data()?.masterPasswordHash;
+            isCreatingMaster = !masterHash;
+            $('#masterPasswordModal h2').textContent = isCreatingMaster ? "Crie uma Senha Master" : "Digite a Senha Master";
+            pendingActionCallback = async () => {
+              // Registrar PIN do dispositivo (opcional)
+              await registerDevicePin();
+              loader.style.display = 'none';
+              addBtn.style.display = 'inline-block';
+              generateBtn.style.display = 'inline-block';
+              loadPasswords();
+            };
+            masterPasswordModal.style.display = 'flex';
+            masterPasswordInput.focus();
           } else {
             window.location.href = "login.html";
           }
@@ -412,6 +544,41 @@
       generateBtn.addEventListener('click', () => generatePassword());
       cancelEditBtn.addEventListener('click', () => editModal.style.display = 'none');
       saveEditBtn.addEventListener('click', saveEditedPassword);
+      cancelMasterPasswordBtn.addEventListener('click', () => {
+        masterPasswordModal.style.display = 'none';
+        masterPasswordInput.value = '';
+        pendingActionCallback = null;
+      });
+      submitMasterPasswordBtn.addEventListener('click', async () => {
+        const input = masterPasswordInput.value.trim();
+        if (!input) return;
+        if (isCreatingMaster) {
+          if (input.length < 6) {
+            alert("A senha master deve ter pelo menos 6 caracteres.");
+            return;
+          }
+          const hash = CryptoJS.SHA256(input).toString();
+          await setDoc(doc(dbFire, "users", auth.currentUser.uid), { masterPasswordHash: hash }, { merge: true });
+          encryptionKey = input;
+          masterPasswordModal.style.display = 'none';
+          masterPasswordInput.value = '';
+          if (pendingActionCallback) await pendingActionCallback();
+          isCreatingMaster = false;
+          pendingActionCallback = null;
+        } else {
+          const authenticated = await authenticateWithMasterPassword(input);
+          if (authenticated) {
+            encryptionKey = input;
+            masterPasswordModal.style.display = 'none';
+            masterPasswordInput.value = '';
+            if (pendingActionCallback) await pendingActionCallback();
+            pendingActionCallback = null;
+          } else {
+            alert("Senha incorreta. Tente novamente.");
+            masterPasswordInput.value = '';
+          }
+        }
+      });
     }
 
     async function addPassword() {
@@ -428,11 +595,13 @@
       }
 
       try {
+        const encryptedUsername = CryptoJS.AES.encrypt(username, encryptionKey).toString();
+        const encryptedPassword = CryptoJS.AES.encrypt(password, encryptionKey).toString();
         const passwordDocRef = doc(collection(dbFire, `senhas`));
         await setDoc(passwordDocRef, {
           site,
-          username,
-          password,
+          username: encryptedUsername,
+          password: encryptedPassword,
           createdAt: new Date()
         });
         siteInput.value = '';
@@ -452,15 +621,17 @@
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
           const data = doc.data();
+          const decryptedUsername = CryptoJS.AES.decrypt(data.username, encryptionKey).toString(CryptoJS.enc.Utf8);
+          const decryptedPassword = CryptoJS.AES.decrypt(data.password, encryptionKey).toString(CryptoJS.enc.Utf8);
           const item = document.createElement('div');
           item.className = 'password-item';
           item.dataset.id = doc.id;
           item.innerHTML = `
             <div class="password-item-content">
               <span class="service-span">${data.site}</span>
-              <span>${data.username}</span>
+              <span>${decryptedUsername}</span>
               <span class="password-field">
-                <span class="password-text" data-password="${data.password}">******</span>
+                <span class="password-text" data-password="${decryptedPassword}">******</span>
                 <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                   <circle cx="12" cy="12" r="3"/>
@@ -491,9 +662,9 @@
             </div>
           `;
           passwordList.appendChild(item);
-          item.addEventListener('dblclick', () => copyPassword(data.password));
+          item.addEventListener('dblclick', () => copyPassword(decryptedPassword));
           const eyeIconInText = item.querySelector('.password-field .eye-icon');
-          eyeIconInText.style.display = 'none'; // Ocultar o ícone no texto, agora só no botão
+          eyeIconInText.style.display = 'none';
           const eyeToggleBtn = item.querySelector('.eye-toggle-btn');
           eyeToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -502,7 +673,7 @@
           const editBtn = item.querySelector('.edit-btn');
           editBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            editPassword(doc.id);
+            openEditModal(doc.id);
           });
           const deleteBtn = item.querySelector('.delete-btn');
           deleteBtn.addEventListener('click', (e) => {
@@ -518,7 +689,6 @@
 
     function generatePassword() {
       const chars = ['C', 'd', 'y', '_', '_', '1', '3', '7'];
-      // Embaralhar a ordem dos caracteres
       for (let i = chars.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [chars[i], chars[j]] = [chars[j], chars[i]];
@@ -536,7 +706,7 @@
       }
     }
 
-    async function editPassword(id) {
+    async function openEditModal(id) {
       currentEditId = id;
       const item = $(`[data-id="${id}"]`);
       const site = item.querySelector('span:nth-child(1)').textContent;
@@ -563,11 +733,13 @@
       }
 
       try {
+        const encryptedUsername = CryptoJS.AES.encrypt(username, encryptionKey).toString();
+        const encryptedPassword = CryptoJS.AES.encrypt(password, encryptionKey).toString();
         const passwordDocRef = doc(dbFire, `senhas`, currentEditId);
         await updateDoc(passwordDocRef, {
           site,
-          username,
-          password,
+          username: encryptedUsername,
+          password: encryptedPassword,
           createdAt: new Date()
         });
         editModal.style.display = 'none';
@@ -594,7 +766,7 @@
       }
     }
 
-    function togglePasswordVisibility(eyeIconInText, toggleIcon) {
+    async function togglePasswordVisibility(eyeIconInText, toggleIcon) {
       const passwordText = eyeIconInText.parentElement.querySelector('.password-text');
       const password = passwordText.dataset.password;
       if (passwordText.textContent === '******') {

@@ -341,7 +341,7 @@
   <!-- Modal for Master Password -->
   <div class="modal" id="masterPasswordModal">
     <div class="modal-content">
-      <h2>Digite a Senha Master</h2>
+      <h2 id="masterPasswordTitle">Crie uma Senha Master</h2>
       <div class="form-group">
         <label for="masterPassword">Senha</label>
         <input type="password" id="masterPassword" placeholder="Digite sua senha">
@@ -390,6 +390,7 @@
     const masterPasswordInput = $('#masterPassword');
     const submitMasterPasswordBtn = $('#submitMasterPasswordBtn');
     const cancelMasterPasswordBtn = $('#cancelMasterPasswordBtn');
+    const masterPasswordTitle = $('#masterPasswordTitle');
     let currentEditId = null;
     let pendingActionCallback = null;
     let encryptionKey = null;
@@ -428,10 +429,44 @@
       }
     }
 
-    // Função para autenticar com PIN do dispositivo (se disponível)
+    // Função para registrar PIN ou biometria do dispositivo
+    async function registerDevicePin() {
+      if (!navigator.credentials || !window.PublicKeyCredential) {
+        alert("Autenticação biométrica ou PIN não suportada neste navegador ou dispositivo.");
+        return false;
+      }
+
+      const publicKey = {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: { name: "Área96 Gerenciador" },
+        user: {
+          id: crypto.getRandomValues(new Uint8Array(16)),
+          name: auth.currentUser.uid,
+          displayName: "Usuário Área96"
+        },
+        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+        authenticatorSelection: { userVerification: "required" } // Exige verificação (biometria ou PIN)
+      };
+
+      try {
+        const credential = await navigator.credentials.create({ publicKey });
+        const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+        await setDoc(doc(dbFire, "users", auth.currentUser.uid, "pins", credentialId), {
+          id: credentialId
+        });
+        console.log("PIN ou autenticação biométrica registrada com sucesso!");
+        return true;
+      } catch (err) {
+        console.error("Erro ao registrar autenticação biométrica ou PIN:", err);
+        alert("Falha ao registrar autenticação biométrica ou PIN. Tente novamente na próxima sessão.");
+        return false;
+      }
+    }
+
+    // Função para autenticar com PIN ou biometria do dispositivo
     async function authenticateWithDevicePin() {
       if (!navigator.credentials || !window.PublicKeyCredential) {
-        console.warn("WebAuthn não suportado neste navegador.");
+        alert("Autenticação biométrica ou PIN não suportada neste navegador ou dispositivo.");
         return false;
       }
 
@@ -445,54 +480,22 @@
         }));
 
         if (credentials.length === 0) {
-          console.warn("Nenhuma credencial de PIN registrada.");
+          console.warn("Nenhuma credencial de PIN ou biometria registrada.");
           return false;
         }
 
         const publicKey = {
           challenge: crypto.getRandomValues(new Uint8Array(32)),
           allowCredentials: credentials,
-          userVerification: "preferred" // Permite PIN ou senha
+          userVerification: "required" // Exige verificação (biometria ou PIN)
         };
 
         const assertion = await navigator.credentials.get({ publicKey });
-        console.log("Autenticado com PIN do dispositivo!");
+        console.log("Autenticado com PIN ou biometria do dispositivo!");
         return true;
       } catch (err) {
-        console.error("Falha na autenticação com PIN:", err);
-        return false;
-      }
-    }
-
-    // Função para registrar PIN (opcional, chamado após login)
-    async function registerDevicePin() {
-      if (!navigator.credentials || !window.PublicKeyCredential) {
-        console.warn("WebAuthn não suportado neste navegador.");
-        return false;
-      }
-
-      const publicKey = {
-        challenge: crypto.getRandomValues(new Uint8Array(32)),
-        rp: { name: "Área96 Gerenciador" },
-        user: {
-          id: crypto.getRandomValues(new Uint8Array(16)),
-          name: auth.currentUser.uid,
-          displayName: "Usuário Área96"
-        },
-        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-        authenticatorSelection: { userVerification: "preferred" }
-      };
-
-      try {
-        const credential = await navigator.credentials.create({ publicKey });
-        const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-        await setDoc(doc(dbFire, "users", auth.currentUser.uid, "pins", credentialId), {
-          id: credentialId
-        });
-        console.log("PIN do dispositivo registrado com sucesso!");
-        return true;
-      } catch (err) {
-        console.error("Erro ao registrar PIN:", err);
+        console.error("Falha na autenticação com PIN ou biometria:", err);
+        alert("Falha na autenticação com PIN ou biometria. Tente novamente na próxima sessão.");
         return false;
       }
     }
@@ -514,10 +517,27 @@
             const userDocSnap = await getDoc(userDocRef);
             masterHash = userDocSnap.data()?.masterPasswordHash;
             isCreatingMaster = !masterHash;
-            $('#masterPasswordModal h2').textContent = isCreatingMaster ? "Crie uma Senha Master" : "Digite a Senha Master";
+            masterPasswordTitle.textContent = isCreatingMaster ? "Crie uma Senha Master" : "Digite a Senha Master";
             pendingActionCallback = async () => {
-              // Registrar PIN do dispositivo (opcional)
-              await registerDevicePin();
+              if (isCreatingMaster) {
+                // Exige autenticação biométrica ou PIN para criar a senha master
+                const pinRegistered = await registerDevicePin();
+                if (!pinRegistered) {
+                  masterPasswordModal.style.display = 'none';
+                  masterPasswordInput.value = '';
+                  pendingActionCallback = null;
+                  return;
+                }
+              } else {
+                // Para login, autentica com PIN ou biometria
+                const authenticated = await authenticateWithDevicePin();
+                if (!authenticated) {
+                  masterPasswordModal.style.display = 'none';
+                  masterPasswordInput.value = '';
+                  pendingActionCallback = null;
+                  return;
+                }
+              }
               loader.style.display = 'none';
               addBtn.style.display = 'inline-block';
               generateBtn.style.display = 'inline-block';

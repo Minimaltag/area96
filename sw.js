@@ -4,6 +4,8 @@ const URLS_TO_CACHE = [
   "/index.html",
   "/login.html",
   "/floatingButtons.js",
+  "/tarefas.html",
+  "/tarefas.css",
   "/gastos.html",
   "/senhas.html",
   "/manifest.json",

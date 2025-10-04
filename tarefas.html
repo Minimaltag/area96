@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Nohaby</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="tarefas.css" />   
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <div class="sync-status" id="syncStatus">Carregando...</div>
+  <div class="app" style="display:none;">
+    <header>
+      <h1>Nohaby</h1>
+    </header>
+    <main class="main">
+      <section class="calendar" id="calendar"></section>
+      <details class="causes-container" id="causesContainer">
+        <summary>TAREFAS</summary>
+        <div class="list" id="causesList"></div>
+      </details>
+    </main>
+    <aside class="sidebar">
+      <div class="mural">
+        <h4>Mural de Conquistas</h4>
+        <div class="badges" id="badgeWall"></div>
+        <div id="emptyBadges" class="empty" style="margin-top:8px">Sem emblemas ainda.</div>
+      </div>
+      <div class="mural" id="shameMural">
+        <h4>Mural da Vergonha</h4>
+        <div class="badges" id="shameWall"></div>
+        <div id="emptyShame" class="empty" style="margin-top:8px">Sem emblemas ainda.</div>
+      </div>
+    </aside>
+  </div>
+  <div class="floating-buttons" style="display:none;">
+    <div id="prevMonthBtn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 18l-6-6 6-6" stroke="#111217" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div id="fab">+</div>
+    <div id="infoBtn">?</div>
+    <div id="nextMonthBtn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 18l6-6-6-6" stroke="#111217" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+  <div id="modal">
+    <div id="modalContent">
+      <h3 id="modalTitle">Tarefas do dia</h3>
+      <div id="causeCheckboxes"></div>
+      <div style="text-align:center;margin-top:10px">
+        <button id="btnSave">Salvar</button>
+        <button id="btnCancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  <div id="addModal">
+    <div id="addModalContent">
+      <h3>Adicionar Tarefa</h3>
+      <input id="newCauseInput" type="text" placeholder="Ex: Tarefa" />
+      <textarea id="newCauseNote" rows="3" placeholder="Detalhes"></textarea>
+      <div style="display:flex;justify-content:center">
+        <button id="addConfirmBtn">Adicionar</button>
+        <button id="addCancelBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  <div id="editModal">
+    <div id="editModalContent">
+      <h3>Editar Tarefa</h3>
+      <input id="editCauseInput" type="text" placeholder="Ex: Tarefa" />
+      <textarea id="editCauseNote" rows="3" placeholder="Detalhes"></textarea>
+      <div style="display:flex;justify-content:center">
+        <button id="editConfirmBtn">Salvar</button>
+        <button id="editCancelBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  <div id="infoModal">
+    <div id="infoModalContent">
+      <h3>Sobre o Nohaby</h3>
+      <p>O Nohaby é um aplicativo para ajudar você a monitorar Tarefas. Aqui está como usá-lo:</p>
+      <p><strong>1. Adicionar Tarefas:</strong> Clique no botão "+" para adicionar uma tarefa e descrevê-la.</p>
+      <p><strong>2. Marcar Dias:</strong> No calendário, clique em um dia para marcar se você conseguiu executar ou não as Tarefas. Dias verdes indicam sucesso, e vermelhos, falhas.</p>
+      <p><strong>3. Acompanhar Progresso:</strong> Veja suas conquistas no "Mural de Conquistas" e possíveis falhas no "Mural da Vergonha".</p>
+      <p><strong>4. Troféus:</strong> Complete um mês para receber troféus baseados no seu desempenho (Soberano, Mestre, Guerreiro, Honrado ou Desonra).</p>
+      <p><strong>5. Editar/Remover:</strong> Gerencie suas Tarefas na seção "Tarefas", usando os botões de edição (lápis) ou remoção (X).</p>
+      <p><strong>6. Navegação:</strong> Use os botões de seta para alternar entre meses.</p>
+      <p><strong>7. Sincronização em Nuvem:</strong> Seus dados são salvos automaticamente na nuvem, permitindo acesso de qualquer dispositivo.</p>
+      <div style="text-align:center;margin-top:10px">
+        <button id="infoCloseBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+  <div id="detailsModal">
+    <div id="detailsModalContent">
+      <h3 id="detailsTitle">Detalhes</h3>
+      <div id="detailsList"></div>
+      <div style="text-align:center;margin-top:8px">
+        <button id="detailsCloseBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // Configuração do Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
+    authDomain: "seguro-8ca1f.firebaseapp.com",
+    projectId: "seguro-8ca1f",
+    storageBucket: "seguro-8ca1f.firebasestorage.app",
+    messagingSenderId: "907049617182",
+    appId: "1:907049617182:web:5b65de251d7553274eeb0f"
+  };
+
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  // Chaves de armazenamento
+  const STORAGE_KEY = 'vicios_control_v7';
+
+  // Elementos DOM
+  const appContainer = document.querySelector('.app');
+  const floatingButtons = document.querySelector('.floating-buttons');
+  const syncStatus = document.getElementById('syncStatus');
+  const calendar = document.getElementById('calendar');
+  const causesList = document.getElementById('causesList');
+  const badgeWall = document.getElementById('badgeWall');
+  const emptyBadges = document.getElementById('emptyBadges');
+  const shameWall = document.getElementById('shameWall');
+  const emptyShame = document.getElementById('emptyShame');
+  const fab = document.getElementById('fab');
+  const prevMonthBtn = document.getElementById('prevMonthBtn');
+  const nextMonthBtn = document.getElementById('nextMonthBtn');
+  const infoBtn = document.getElementById('infoBtn');
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modalTitle');
+  const causeCheckboxes = document.getElementById('causeCheckboxes');
+  const btnSave = document.getElementById('btnSave');
+  const btnCancel = document.getElementById('btnCancel');
+  const addModal = document.getElementById('addModal');
+  const newCauseInput = document.getElementById('newCauseInput');
+  const newCauseNote = document.getElementById('newCauseNote');
+  const addConfirmBtn = document.getElementById('addConfirmBtn');
+  const addCancelBtn = document.getElementById('addCancelBtn');
+  const editModal = document.getElementById('editModal');
+  const editCauseInput = document.getElementById('editCauseInput');
+  const editCauseNote = document.getElementById('editCauseNote');
+  const editConfirmBtn = document.getElementById('editConfirmBtn');
+  const editCancelBtn = document.getElementById('editCancelBtn');
+  const infoModal = document.getElementById('infoModal');
+  const infoCloseBtn = document.getElementById('infoCloseBtn');
+  const detailsModal = document.getElementById('detailsModal');
+  const detailsList = document.getElementById('detailsList');
+  const detailsTitle = document.getElementById('detailsTitle');
+  const detailsCloseBtn = document.getElementById('detailsCloseBtn');
+
+  let state = { causes: [], trophies: [], lastAction: null, currentMonth: 'current' };
+  let currentUserId = null;
+  let currentKey, currentDay, currentCell;
+  let detailsView = { monthKey: null, trophy: null, stats: null, type: '' };
+  let editCauseId = null;
+  let displayDate = getDisplayDate();
+
+  // Atualizar status de sincronização
+  function updateSyncStatus(status, message) {
+    syncStatus.textContent = message;
+    syncStatus.className = 'sync-status ' + status;
+  }
+
+  // Referência ao documento do usuário no Firestore
+  function getUserDocRef() {
+    return db.collection('tarefas').doc(currentUserId);
+  }
+
+  // Sincronizar dados com o Firestore
+  async function syncWithFirestore() {
+    try {
+      updateSyncStatus('syncing', 'Sincronizando...');
+
+      // Carregar dados locais
+      const localData = loadLocalData();
+
+      // Verificar se o usuário tem loginOK == true
+      const userDoc = await db.collection('users').doc(currentUserId).get();
+      if (!userDoc.exists || !userDoc.data().loginOK) {
+        throw new Error('Acesso não autorizado: loginOK não está definido ou é falso');
+      }
+
+      // Tentar carregar dados do Firestore
+      const userDocRef = getUserDocRef();
+      const doc = await userDocRef.get();
+
+      if (doc.exists) {
+        const userData = doc.data();
+        const cloudData = userData || {};
+
+        // Verificar qual conjunto de dados é mais recente
+        const localLastUpdate = localData.lastUpdate || 0;
+        const cloudLastUpdate = cloudData.lastUpdate || 0;
+
+        if (cloudLastUpdate > localLastUpdate) {
+          updateSyncStatus('synced', 'Sincronizado');
+          return cloudData;
+        } else if (localLastUpdate > cloudLastUpdate) {
+          await userDocRef.set({
+            ...localData,
+            lastUpdate: Date.now()
+          }, { merge: true });
+          updateSyncStatus('synced', 'Dados enviados');
+          return localData;
+        } else {
+          updateSyncStatus('synced', 'Sincronizado');
+          return localData;
+        }
+      } else {
+        // Criar documento no Firestore com dados locais
+        await userDocRef.set({
+          ...localData,
+          lastUpdate: Date.now(),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        updateSyncStatus('synced', 'Novo documento criado');
+        return localData;
+      }
+    } catch (error) {
+      console.error('Erro na sincronização:', error);
+      updateSyncStatus('error', 'Erro de sincronização - usando dados locais');
+      return loadLocalData();
+    }
+  }
+
+  // Salvar dados no Firestore
+  async function saveToFirestore(data) {
+    try {
+      updateSyncStatus('syncing', 'Salvando...');
+
+      // Verificar se o usuário tem loginOK == true
+      const userDoc = await db.collection('users').doc(currentUserId).get();
+      if (!userDoc.exists || !userDoc.data().loginOK) {
+        throw new Error('Acesso não autorizado: loginOK não está definido ou é falso');
+      }
+
+      // Atualizar timestamp
+      data.lastUpdate = Date.now();
+
+      // Salvar localmente
+      saveLocalData(data);
+
+      // Salvar na nuvem
+      const userDocRef = getUserDocRef();
+      await userDocRef.set(data, { merge: true });
+      updateSyncStatus('synced', 'Salvo');
+    } catch (error) {
+      console.error('Erro ao salvar na nuvem:', error);
+      updateSyncStatus('error', 'Erro ao salvar - dados salvos localmente');
+    }
+  }
+
+  // Funções de armazenamento local
+  function loadLocalData() {
+    const userSpecificKey = `${STORAGE_KEY}_${currentUserId}`;
+    let data;
+    try {
+      data = JSON.parse(localStorage.getItem(userSpecificKey)) || {};
+    } catch (e) {
+      data = {};
+    }
+    return { causes: data.causes || [], trophies: data.trophies || [], lastAction: data.lastAction || null, currentMonth: data.currentMonth || 'current' };
+  }
+
+  function saveLocalData(state) {
+    const userSpecificKey = `${STORAGE_KEY}_${currentUserId}`;
+    localStorage.setItem(userSpecificKey, JSON.stringify(state));
+  }
+
+  // Event Listeners
+  fab.addEventListener('click', () => {
+    addModal.style.display = 'flex';
+    newCauseInput.value = '';
+    newCauseNote.value = '';
+    newCauseInput.focus();
+  });
+  addConfirmBtn.addEventListener('click', () => {
+    const v = newCauseInput.value.trim();
+    const note = newCauseNote.value.trim();
+    if (v) {
+      addCause(v, note);
+      addModal.style.display = 'none';
+    }
+  });
+  addCancelBtn.addEventListener('click', () => { addModal.style.display = 'none'; });
+  newCauseInput.addEventListener('keydown', e => { if (e.key === 'Enter') addConfirmBtn.click(); });
+  editConfirmBtn.addEventListener('click', () => {
+    const v = editCauseInput.value.trim();
+    const note = editCauseNote.value.trim();
+    if (v) {
+      editCause(editCauseId, v, note);
+      editModal.style.display = 'none';
+    }
+  });
+  editCancelBtn.addEventListener('click', () => { editModal.style.display = 'none'; });
+  editCauseInput.addEventListener('keydown', e => { if (e.key === 'Enter') editConfirmBtn.click(); });
+  infoCloseBtn.addEventListener('click', () => { infoModal.style.display = 'none'; });
+  btnSave.addEventListener('click', saveDay);
+  btnCancel.addEventListener('click', () => { modal.style.display = 'none'; });
+  detailsCloseBtn.addEventListener('click', () => { detailsModal.style.display = 'none'; });
+  prevMonthBtn.addEventListener('click', () => {
+    state.currentMonth = 'previous';
+    saveState();
+    displayDate = getDisplayDate();
+    render();
+  });
+  nextMonthBtn.addEventListener('click', () => {
+    state.currentMonth = 'current';
+    saveState();
+    displayDate = getDisplayDate();
+    render();
+  });
+  infoBtn.addEventListener('click', () => { infoModal.style.display = 'flex'; });
+
+  // Funções auxiliares
+  async function saveState() {
+    await saveToFirestore(state);
+  }
+
+  function addCause(title, note) {
+    const id = 'c_' + Date.now();
+    state.causes.push({ id, title, notes: note || '', records: {} });
+    state.lastAction = { type: 'addBadHabit', title, note, id };
+    saveState();
+    render();
+  }
+
+  function editCause(id, title, note) {
+    const cause = state.causes.find(c => c.id === id);
+    if (cause) {
+      cause.title = title;
+      cause.notes = note;
+      state.lastAction = { type: 'editBadHabit', id, title, note };
+      saveState();
+      render();
+    }
+  }
+
+  function removeCause(id) {
+    state.causes = state.causes.filter(c => c.id !== id);
+    state.lastAction = { type: 'removeBadHabit', id };
+    saveState();
+    render();
+  }
+
+  function monthKeyForDate(d) { return `${d.getFullYear()}-${d.getMonth() + 1}`; }
+
+  function getDisplayDate() {
+    const now = new Date();
+    if (state.currentMonth === 'previous') {
+      return new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    }
+    return now;
+  }
+
+  function getMonthName(monthIndex) {
+    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    return months[monthIndex];
+  }
+
+  // Funções de renderização
+  function render() {
+    calendar.innerHTML = '';
+    calendar.appendChild(renderCalendar());
+    causesList.innerHTML = '';
+    state.causes.forEach(c => causesList.appendChild(renderCauseCard(c)));
+    renderBadges();
+    renderShameBadges();
+  }
+
+  function renderCalendar() {
+    const container = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'calendar-title';
+    title.textContent = `${getMonthName(displayDate.getMonth())} ${displayDate.getFullYear()}`;
+    container.appendChild(title);
+
+    const month = document.createElement('div');
+    month.className = 'month';
+    const year = displayDate.getFullYear();
+    const monthIndex = displayDate.getMonth();
+    const first = new Date(year, monthIndex, 1);
+    const last = new Date(year, monthIndex + 1, 0);
+    const startWeekday = first.getDay();
+
+    for (let i = 0; i < startWeekday; i++) {
+      const blank = document.createElement('div');
+      blank.className = 'day';
+      blank.style.visibility = 'hidden';
+      month.appendChild(blank);
+    }
+
+    for (let d = 1; d <= last.getDate(); d++) {
+      const cell = document.createElement('div');
+      cell.className = 'day';
+      cell.textContent = d;
+      const key = monthKeyForDate(displayDate);
+      const status = getDayStatus(key, d);
+      updateCellClass(cell, status);
+
+      if (state.currentMonth === 'current' && d > new Date().getDate() && monthIndex === new Date().getMonth() && year === new Date().getFullYear()) {
+        cell.classList.add('disabled');
+      } else if (!status) {
+        cell.addEventListener('click', () => {
+          currentKey = key;
+          currentDay = d;
+          currentCell = cell;
+          showDayModal(d, key);
+        });
+      }
+      month.appendChild(cell);
+    }
+    container.appendChild(month);
+    return container;
+  }
+
+  function getDayStatus(monthKey, day) {
+    let greenCount = 0;
+    state.causes.forEach(cause => {
+      if (cause.records[monthKey] && cause.records[monthKey][day] === 'green') greenCount++;
+    });
+    if (greenCount === 0 && state.causes.every(cause => !cause.records[monthKey] || !cause.records[monthKey][day])) return null;
+    return greenCount / state.causes.length >= 0.5 ? 'green' : 'red';
+  }
+
+  function showDayModal(day, monthKey) {
+    modalTitle.textContent = `Tarefas do dia ${day}`;
+    causeCheckboxes.innerHTML = '';
+    state.causes.forEach(cause => {
+      const div = document.createElement('div');
+      div.className = 'cause-item';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.causeId = cause.id;
+      if (cause.records[monthKey] && cause.records[monthKey][day] === 'green') checkbox.checked = true;
+      checkbox.disabled = cause.records[monthKey] && cause.records[monthKey][day];
+      const label = document.createElement('label');
+      label.textContent = cause.title;
+      div.appendChild(checkbox);
+      div.appendChild(label);
+      causeCheckboxes.appendChild(div);
+    });
+    modal.style.display = 'flex';
+  }
+
+  async function saveDay() {
+    if (state.causes.length === 0) {
+      modal.style.display = 'none';
+      return;
+    }
+
+    const confirmed = confirm('Você tem certeza de que as seleções estão corretas?');
+    if (!confirmed) return;
+
+    const checkboxes = causeCheckboxes.querySelectorAll('input[type=checkbox]');
+    let greenCount = 0;
+    checkboxes.forEach(checkbox => {
+      const causeId = checkbox.dataset.causeId;
+      const c = state.causes.find(x => x.id === causeId);
+      if (!c) return;
+      c.records = c.records || {};
+      c.records[currentKey] = c.records[currentKey] || {};
+      if (!c.records[currentKey][currentDay]) {
+        c.records[currentKey][currentDay] = checkbox.checked ? 'green' : 'red';
+        if (checkbox.checked) greenCount++;
+      }
+    });
+
+    state.lastAction = { type: 'saveDay', key: currentKey, day: currentDay, greenCount };
+
+    const totalDays = new Date(parseInt(currentKey.split('-')[0]), parseInt(currentKey.split('-')[1]), 0).getDate();
+    const isComplete = state.causes.every(cause => cause.records[currentKey] && Object.keys(cause.records[currentKey]).length === totalDays);
+
+    if (isComplete) {
+      let greenDays = 0;
+      for (let d = 1; d <= totalDays; d++) {
+        if (getDayStatus(currentKey, d) === 'green') greenDays++;
+      }
+      const pct = greenDays / totalDays;
+      const trophy = getTrophyName(pct);
+      const stats = getMonthStats(currentKey);
+      if (!state.trophies.find(t => t.monthKey === currentKey)) {
+        state.trophies.push({ monthKey: currentKey, trophy, stats });
+      }
+    }
+
+    await saveState();
+    updateCellClass(currentCell, greenCount / state.causes.length >= 0.5 ? 'green' : 'red');
+    modal.style.display = 'none';
+    render();
+  }
+
+  function getGoodBadLists() {
+    let good = [], bad = [];
+    state.trophies.forEach(trophy => {
+      if (trophy.trophy !== 'Desonra') {
+        good.push(trophy);
+      } else {
+        bad.push(trophy);
+      }
+    });
+    return { good, bad };
+  }
+
+  function getTrophyName(pct) {
+    if (pct >= 1.0) return 'Soberano';
+    if (pct >= 0.9) return 'Mestre';
+    if (pct >= 0.8) return 'Guerreiro';
+    if (pct >= 0.7) return 'Honrado';
+    return 'Desonra';
+  }
+
+  function getTrophySVG(trophyName) {
+    if (trophyName === 'Desonra') {
+      return `<div class="trophy-desonra"><span>💀</span></div>`;
+    }
+    if (trophyName === 'Soberano') {
+      return `<div class="trophy-soberano"><span>👑</span></div>`;
+    }
+    if (trophyName === 'Mestre') {
+      return `<div class="trophy-mestre"><span>🏆</span></div>`;
+    }
+    if (trophyName === 'Guerreiro') {
+      return `<div class="trophy-guerreiro"><span>⚔️</span></div>`;
+    }
+    return `<div class="trophy-honrado"><span>🏅</span></div>`;
+  }
+
+  function renderBadges() {
+    badgeWall.innerHTML = '';
+    const { good } = getGoodBadLists();
+    if (!good.length) {
+      emptyBadges.style.display = 'block';
+      return;
+    }
+    emptyBadges.style.display = 'none';
+    good.forEach(item => {
+      const svg = getTrophySVG(item.trophy);
+      const wrap = document.createElement('div');
+      wrap.className = 'badge';
+      wrap.innerHTML = svg;
+      wrap.addEventListener('click', () => showDetails(item, 'Conquistas'));
+      badgeWall.appendChild(wrap);
+    });
+  }
+
+  function renderShameBadges() {
+    shameWall.innerHTML = '';
+    const { bad } = getGoodBadLists();
+    if (!bad.length) {
+      emptyShame.style.display = 'block';
+      return;
+    }
+    emptyShame.style.display = 'none';
+    bad.forEach(item => {
+      const svg = getTrophySVG(item.trophy);
+      const wrap = document.createElement('div');
+      wrap.className = 'badge';
+      wrap.innerHTML = svg;
+      wrap.addEventListener('click', () => showDetails(item, 'Falhas'));
+      shameWall.appendChild(wrap);
+    });
+  }
+
+  function getMonthStats(monthKey) {
+    const stats = [];
+    const totalDays = new Date(parseInt(monthKey.split('-')[0]), parseInt(monthKey.split('-')[1]), 0).getDate();
+    const trophy = state.trophies.find(t => t.monthKey === monthKey);
+    if (trophy && trophy.stats) {
+      return trophy.stats;
+    }
+    state.causes.forEach(cause => {
+      const rec = cause.records[monthKey] || {};
+      const greenCount = Object.values(rec).filter(v => v === 'green').length;
+      const redCount = Object.values(rec).filter(v => v === 'red').length;
+      const positivePct = totalDays > 0 ? ((greenCount / totalDays) * 100).toFixed(1) : 0;
+      const negativePct = totalDays > 0 ? ((redCount / totalDays) * 100).toFixed(1) : 0;
+      stats.push({ title: cause.title, positivePct, negativePct });
+    });
+    return stats;
+  }
+
+  function showDetails(item, title) {
+    detailsView.monthKey = item.monthKey;
+    detailsView.trophy = item.trophy;
+    detailsView.stats = item.stats;
+    detailsView.type = title;
+    renderDetailsModal();
+    detailsModal.style.display = 'flex';
+  }
+
+  function renderDetailsModal() {
+    const { monthKey, trophy, stats, type } = detailsView;
+    const [y, m] = monthKey.split('-').map(Number);
+    const monthName = getMonthName(m - 1);
+    detailsTitle.textContent = `Detalhes das ${type}`;
+    let html = '';
+    html += `<div class="metaLine">Mês: ${monthName} ${y}</div>`;
+    html += `<div class="metaLine">Troféu: ${trophy}</div>`;
+    html += `<div class="trophy-container">${getTrophySVG(trophy)}</div>`;
+    html += `<div class="metaLine">Estatísticas por tarefa:</div>`;
+    stats.forEach(stat => {
+      html += `<div class="metaLine"> - ${escapeHtml(stat.title)}: ${stat.positivePct}% (Sucesso), ${stat.negativePct}% (Falha)</div>`;
+    });
+    detailsList.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderCauseCard(cause) {
+    const detailsElem = document.createElement('details');
+    detailsElem.dataset.id = cause.id;
+    const summary = document.createElement('summary');
+    summary.textContent = cause.title;
+    detailsElem.appendChild(summary);
+
+    const noteEl = document.createElement('div');
+    noteEl.className = 'small';
+    noteEl.style.textAlign = 'center';
+    noteEl.style.marginTop = '4px';
+    if (cause.notes) noteEl.textContent = cause.notes;
+    detailsElem.appendChild(noteEl);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const stats = document.createElement('div');
+    stats.className = 'small';
+    stats.textContent = summaryForCause(cause);
+    const actions = document.createElement('div');
+    actions.className = 'row';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'action-btn';
+    editBtn.innerHTML = '✎';
+    editBtn.addEventListener('click', () => {
+      editCauseId = cause.id;
+      editCauseInput.value = cause.title;
+      editCauseNote.value = cause.notes;
+      editModal.style.display = 'flex';
+      editCauseInput.focus();
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'action-btn';
+    deleteBtn.innerHTML = '✕';
+    deleteBtn.addEventListener('click', () => {
+      if (confirm('Remover tarefa e dados?')) {
+        removeCause(cause.id);
+      }
+    });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+    meta.appendChild(stats);
+    meta.appendChild(actions);
+    detailsElem.appendChild(meta);
+    return detailsElem;
+  }
+
+  function updateCellClass(cell, status) {
+    cell.classList.remove('success', 'failure');
+    if (status === 'green') cell.classList.add('success');
+    else if (status === 'red') cell.classList.add('failure');
+  }
+
+  function summaryForCause(c) {
+    const key = monthKeyForDate(displayDate);
+    const rec = (c.records && c.records[key]) || {};
+    const greens = Object.values(rec).filter(v => v === 'green').length;
+    const reds = Object.values(rec).filter(v => v === 'red').length;
+    return `Sucessos: ${greens} Falhas: ${reds}`;
+  }
+
+  // Inicialização da aplicação
+  async function initApp(user) {
+    currentUserId = user.uid;
+    try {
+      state = await syncWithFirestore();
+      render();
+      appContainer.style.display = 'grid';
+      floatingButtons.style.display = 'flex';
+    } catch (error) {
+      console.error('Erro na inicialização:', error);
+      state = loadLocalData();
+      render();
+      appContainer.style.display = 'grid';
+      floatingButtons.style.display = 'flex';
+    }
+  }
+
+  // Monitorar estado de autenticação
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      initApp(user);
+    } else {
+      // Redirecionar para login.html se não estiver autenticado
+      window.location.href = 'login.html';
+    }
+  });
+
+  // Expor estado para debug (opcional)
+  window.__vicios_state = state;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+ :root{
+      --bg:#ffffff; --muted:#f5f5f7; --line:#d1d1d6; --text:#111217; --accent:#111217;
+      --card-radius:10px; --gap:10px;
+    }
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;}
+    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-webkit-touch-callout:none;}
+    .app{max-width:1100px;margin:12px auto;padding:12px;gap:12px;display:grid;grid-template-columns:1fr}
+    header{grid-column:1/-1;display:flex;justify-content:center;align-items:center;margin-bottom:8px}
+    h1{font-size:18px;margin:0;font-weight:600;border:2px solid var(--line);padding:4px 8px;border-radius:6px;text-align:center;line-height:1.2}
+    .main{display:flex;flex-direction:column;gap:var(--gap)}
+    .list{display:flex;flex-direction:column;gap:12px;padding:8px}
+    .causes-container summary{font-size:16px;font-weight:600;text-align:center;margin-bottom:8px;border:2px solid var(--line);padding:6px 12px;border-radius:6px;cursor:pointer;background:linear-gradient(180deg,#ffffff,#fbfbfc);display:flex;align-items:center;justify-content:center;gap:6px}
+    .causes-container summary::marker{display:none}
+    .causes-container summary::after{content:'▼';font-size:10px;color:#6b6f76;transition:transform 0.2s}
+    .causes-container[open] summary::after{transform:rotate(180deg)}
+    .calendar{border:2px solid var(--line);border-radius:var(--card-radius);padding:8px;background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    .calendar-title{font-size:16px;font-weight:600;text-align:center;margin-bottom:8px;border:2px solid var(--line);padding:6px 12px;border-radius:6px}
+    .month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+    .day{height:32px;border-radius:6px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer}
+    .day.success{background:linear-gradient(180deg,#e8f5e9,#dcedc8);border:2px solid #aed581}
+    .day.failure{background:linear-gradient(180deg,#ffebee,#ffcdd2);border:2px solid #e57373}
+    .day.disabled{opacity:0.5;cursor:not-allowed;border:2px dashed #ccc;color:#ccc}
+    .legend{font-size:10px;color:#6b6f76;margin-bottom:6px}
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px}
+    .small{font-size:10px;color:#6b6f76}
+    .sidebar{display:flex;flex-direction:column;gap:12px}
+    .mural{background:transparent;border-radius:var(--card-radius);padding:8px;border:2px solid var(--line)}
+    .mural h4{margin:0 0 8px 0;font-size:13px}
+    .badges{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+    .badges::-webkit-scrollbar{display:none}
+    .badge{width:50px;height:50px;border-radius:8px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;background:var(--muted);cursor:pointer;flex-shrink:0}
+    .empty{color:#9aa0a6;font-size:11px}
+    .row{display:flex;gap:6px;align-items:center}
+    .action-btn{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
+    .action-btn:hover{background:#f5f5f7}
+    .floating-buttons{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;justify-content:center}
+    #fab, #prevMonthBtn, #nextMonthBtn, #infoBtn{width:40px;height:40px;border-radius:50%;background:transparent;color:#111217;font-size:24px;cursor:pointer;z-index:10;border:2px solid #111217;display:flex;align-items:center;justify-content:center}
+    #modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center}
+    #modalContent{background:white;padding:16px;border-radius:8px;text-align:left;min-width:280px;border:2px solid var(--line);background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #modalContent h3{margin:0 0 10px;font-size:16px;border:2px solid var(--line);padding:6px 12px;border-radius:6px;background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #modalContent .cause-item{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    #modalContent input[type=checkbox]{width:18px;height:18px}
+    #modalContent button{margin:4px;padding:8px 12px;color:white;border:2px solid var(--line);border-radius:6px;cursor:pointer}
+    #btnSave{background:#111217}
+    #btnCancel{background:#9E9E9E}
+    #addModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center}
+    #addModalContent{background:white;padding:16px;border-radius:8px;text-align:center;min-width:280px;border:2px solid var(--line);background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #addModalContent h3{margin:0 0 10px;font-size:16px;border:2px solid var(--line);padding:6px 12px;border-radius:6px;background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #addModalContent input,#addModalContent textarea{width:90%;margin-bottom:8px;padding:6px;border:2px solid var(--line);border-radius:6px}
+    #addModalContent button{padding:8px 16px;color:white;border:2px solid var(--line);border-radius:6px;cursor:pointer;background:#111217}
+    #addModalContent #addCancelBtn{background:#9E9E9E}
+    #editModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center}
+    #editModalContent{background:white;padding:16px;border-radius:8px;text-align:center;min-width:280px;border:2px solid var(--line);background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #editModalContent h3{margin:0 0 10px;font-size:16px;border:2px solid var(--line);padding:6px 12px;border-radius:6px;background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #editModalContent input,#editModalContent textarea{width:90%;margin-bottom:8px;padding:6px;border:2px solid var(--line);border-radius:6px}
+    #editModalContent button{padding:8px 16px;color:white;border:2px solid var(--line);border-radius:6px;cursor:pointer;background:#111217}
+    #editModalContent #editCancelBtn{background:#9E9E9E}
+    #infoModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center}
+    #infoModalContent{background:white;padding:16px;border-radius:8px;text-align:left;min-width:280px;max-width:480px;border:2px solid var(--line);background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #infoModalContent h3{margin:0 0 10px;font-size:16px;border:2px solid var(--line);padding:6px 12px;border-radius:6px;background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #infoModalContent p{font-size:14px;margin:0 0 10px}
+    #infoModalContent button{padding:8px 16px;color:white;border:2px solid var(--line);border-radius:6px;cursor:pointer;background:#111217}
+    #detailsModal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center}
+    #detailsModalContent{background:white;padding:20px;border-radius:8px;text-align:left;max-width:480px;max-height:80%;overflow:auto;border:2px solid var(--line);background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #detailsModalContent h3{margin:0 0 10px;font-size:18px;border:2px solid var(--line);padding:8px 16px;border-radius:6px;background:linear-gradient(180deg,#ffffff,#fbfbfc)}
+    #detailsModalContent ul{margin:0;padding:0;list-style:none}
+    #detailsModalContent li{margin-bottom:6px}
+    #detailsModalContent .metaLine{font-size:12px;color:#333;margin-bottom:4px}
+    .trophy-container{display:flex;justify-content:center;margin:8px 0}
+    .trophy-container .trophy-honrado,.trophy-container .trophy-guerreiro,.trophy-container .trophy-mestre,.trophy-container .trophy-soberano,.trophy-container .trophy-desonra{width:56px;height:56px;font-size:32px}
+    .trophy-honrado{width:40px;height:40px;border-radius:50%;border:2px solid #4CAF50;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative}
+    .trophy-honrado span{position:relative;z-index:2}
+    .trophy-honrado::before{content:'';position:absolute;width:40px;height:40px;border-radius:50%;border:2px solid #4CAF50;z-index:1}
+    .trophy-guerreiro{width:40px;height:40px;border-radius:50%;border:2px solid #4CAF50;background:linear-gradient(45deg,#4CAF50,#66BB6A);display:flex;align-items:center;justify-content:center;font-size:24px;position:relative}
+    .trophy-guerreiro span{position:relative;z-index:2}
+    .trophy-guerreiro::before,.trophy-guerreiro::after{content:'';position:absolute;width:24px;height:24px;border-radius:50%;border:2px solid #4CAF50;opacity:0.5}
+    .trophy-guerreiro::before{transform:translate(-6px,-6px);z-index:1}
+    .trophy-guerreiro::after{transform:translate(6px,6px);z-index:1}
+    .trophy-mestre{width:40px;height:40px;border-radius:50%;border:2px solid #FFD700;background:#FFD700;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative}
+    .trophy-mestre span{position:relative;z-index:2}
+    .trophy-mestre::before,.trophy-mestre::after{content:'';position:absolute;width:6px;height:40px;background:#C0C0C0;transform:rotate(45deg);opacity:0.8}
+    .trophy-mestre::before{z-index:1}
+    .trophy-mestre::after{transform:rotate(-45deg);z-index:1}
+    .trophy-soberano{width:40px;height:40px;border-radius:50%;border:2px solid #00FF00;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative}
+    .trophy-soberano span{position:relative;z-index:2}
+    .trophy-soberano::before{
+      content:'';
+      position:absolute;
+      width:100%;
+      height:100%;
+      background:radial-gradient(circle, rgba(255,255,255,1) 3px, transparent 4px);
+      background-size:10px 10px;
+      border-radius:50%;
+      animation:sparkle 1.5s ease-in-out infinite;
+      z-index:1;
+      box-shadow:0 0 3px rgba(255,255,255,0.8);
+    }
+    .trophy-soberano{animation:neon 3s ease-in-out infinite}
+    @keyframes neon{
+      0% {border-color:#00B7EB}
+      33% {border-color:#FF9500}
+      66% {border-color:#FF2D55}
+      100% {border-color:#00B7EB}
+    }
+    @keyframes sparkle{
+      0% {opacity:0.5}
+      50% {opacity:1.0}
+      100% {opacity:0.5}
+    }
+    .trophy-desonra{width:40px;height:40px;border-radius:50%;border:2px solid #808080;background:#808080;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative}
+    .trophy-desonra span{position:relative;z-index:2}
+    .trophy-desonra::before{content:'';position:absolute;width:40px;height:40px;border-radius:50%;border:2px solid #808080;z-index:1}
+    @media(max-width:600px){
+      .app{padding:8px;margin:8px auto;grid-template-columns:1fr}
+      .sidebar{order:2}
+      .floating-buttons{gap:6px}
+      .calendar{padding:6px}
+      .month{gap:3px}
+      .day{height:28px;font-size:9px}
+      .calendar-title{font-size:14px;padding:4px 8px}
+      .causes-container summary{font-size:14px;padding:4px 8px}
+      .list{gap:10px;padding:6px}
+      .mural{padding:6px}
+      .mural h4{font-size:12px}
+      .badge{width:46px;height:46px}
+      .trophy-honrado,.trophy-guerreiro,.trophy-mestre,.trophy-soberano,.trophy-desonra{width:36px;height:36px;font-size:20px}
+      .trophy-container .trophy-honrado,.trophy-container .trophy-guerreiro,.trophy-container .trophy-mestre,.trophy-container .trophy-soberano,.trophy-container .trophy-desonra{width:48px;height:48px;font-size:28px}
+      .trophy-honrado::before,.trophy-desonra::before{width:36px;height:36px}
+      .trophy-guerreiro::before,.trophy-guerreiro::after{width:20px;height:20px}
+      .trophy-guerreiro::before{transform:translate(-5px,-5px)}
+      .trophy-guerreiro::after{transform:translate(5px,5px)}
+      .trophy-mestre::before,.trophy-mestre::after{width:5px;height:36px}
+      #modalContent{min-width:95%;padding:16px}
+      #addModalContent{min-width:95%;padding:16px}
+      #editModalContent{min-width:95%;padding:16px}
+      #infoModalContent{max-width:98%;padding:16px}
+      #detailsModalContent{max-width:98%;padding:16px}
+    }
+    .sync-status {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      z-index: 1000;
+      background: #f5f5f7;
+      border: 1px solid #d1d1d6;
+    }
+    .sync-status.syncing {
+      background: #fff3cd;
+      border-color: #ffeaa7;
+    }
+    .sync-status.synced {
+      background: #d1edff;
+      border-color: #a8d8ff;
+    }
+    .sync-status.error {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+    }
+    
+    /* Modal de Login */
+    #loginModal {
+      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #loginModalContent {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      min-width: 300px;
+      max-width: 90%;
+      border: 2px solid var(--line);
+      background: linear-gradient(180deg, #ffffff, #fbfbfc);
+    }
+    #loginModalContent h2 {
+      margin: 0 0 16px 0;
+      font-size: 20px;
+      border: 2px solid var(--line);
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #ffffff, #fbfbfc);
+    }
+    #loginModalContent p {
+      font-size: 14px;
+      margin: 0 0 16px 0;
+      color: #6b6f76;
+    }
+    #usernameInput {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      font-size: 16px;
+      text-align: center;
+    }
+    #loginBtn {
+      width: 100%;
+      padding: 10px;
+      background: #111217;
+      color: white;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    #loginBtn:hover {
+      background: #333;
+    }
+    #loginBtn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .login-error {
+      color: #e57373;
+      font-size: 12px;
+      margin-top: 8px;
+      display: none;
+    }

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a1a">
+  <title>Segredos Sombrios</title>    
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      letter-spacing: 0.2px;
+      background-color: #1a1a1a;
+      color: #d3d3d3;
+    }
+    header {
+      text-align: center;
+      padding: 16px;
+      background: #0a0a0a;
+      color: #d3d3d3;
+      border-bottom: 2px solid #4b0082;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      text-shadow: 0 0 10px #4b0082;
+    }
+    .wrap {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: #2a2a2a;
+      border-radius: 12px;
+      border: 1px solid #4b0082;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(75, 0, 130, 0.5);
+    }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .msg {
+      background: #333333;
+      border-radius: 12px;
+      border: 1px solid #4b0082;
+      padding: 12px;
+      box-shadow: 0 2px 6px rgba(75, 0, 130, 0.3);
+    }
+    .content {
+      display: flex;
+      flex-direction: column;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .ranking-text {
+      margin: 8px 0;
+      padding: 12px;
+      background: #2a2a2a;
+      border-radius: 12px;
+      border-left: 4px solid #4b0082;
+    }
+    .muted {
+      color: #888;
+      font-size: 14px;
+    }
+    .empty {
+      text-align: center;
+      color: #888;
+      padding: 16px;
+    }
+    .spacer {
+      height: 80px;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: grid;
+      place-items: center;
+      z-index: 1000;
+    }
+    .box {
+      background: #2a2a2a;
+      border-radius: 12px;
+      border: 1px solid #4b0082;
+      padding: 16px;
+      max-width: 90%;
+      width: 400px;
+      box-shadow: 0 4px 12px rgba(75, 0, 130, 0.5);
+    }
+    .btn {
+      background: #333333;
+      border: 1px solid #4b0082;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn.primary {
+      background: #4b0082;
+      color: #d3d3d3;
+      border: none;
+    }
+    .btn.danger {
+      background: #8b0000;
+      color: #d3d3d3;
+      border: none;
+    }
+    .btn:hover {
+      background: #555555;
+    }
+    .btn.primary:hover {
+      background: #6a0dad;
+    }
+    .btn.danger:hover {
+      background: #a50000;
+    }
+    .link-btn {
+      background: #333333;
+      border: 1px solid #4b0082;
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 16px;
+      text-align: center;
+      color: #d3d3d3;
+    }
+    .link-btn:hover {
+      background: #555555;
+    }
+    .emoji-btn {
+      background: #333333;
+      border: 1px solid #4b0082;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      transition: background 0.2s;
+    }
+    .emoji-btn.active {
+      background: #4b0082;
+      color: #d3d3d3;
+      border: none;
+    }
+    .emoji-btn:hover {
+      background: #555555;
+    }
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #4b0082;
+      min-height: 120px;
+      resize: none;
+      font-family: 'Roboto', sans-serif;
+      font-size: 16px;
+      background: #333333;
+      color: #d3d3d3;
+    }
+    .textarea-container {
+      position: relative;
+      margin-top: 24px;
+    }
+    .fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #4b0082;
+      color: #d3d3d3;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(75, 0, 130, 0.5);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .fab:hover {
+      background: #6a0dad;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Segredos Sombrios</h1>
+  </header>
+  <main class="wrap">
+    <div class="grid">
+      <section class="card pad" id="view">
+        <!-- Views render here -->
+      </section>
+    </div>
+  </main>
+  <button class="fab" data-tab="postar" title="Novo Segredo Sombrio">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+  </button>
+  <div id="modalRoot" style="display:none"></div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+    const $ = (s, root = document) => root.querySelector(s);
+    const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
+
+    const DB = {
+      segredos: [],
+      user: null
+    };
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVL85SKILKz71T8MkLiIjjKzOAlt9hj5c",
+      authDomain: "seguro-8ca1f.firebaseapp.com",
+      projectId: "seguro-8ca1f",
+      storageBucket: "seguro-8ca1f.firebasestorage.app",
+      messagingSenderId: "907049617182",
+      appId: "1:907049617182:web:5b65de251d7553274eeb0f"
+    };
+
+    // Inicialização do Firebase
+    const app = initializeApp(firebaseConfig);
+    const dbFire = getFirestore(app);
+    const auth = getAuth(app);
+
+    async function add(message) {
+      try {
+        const docRef = await addDoc(collection(dbFire, "segredos"), {
+          text: message.text,
+          likes: message.likes || []
+        });
+        message.id = docRef.id;
+        DB.segredos.push(message);
+        updateView();
+      } catch (e) {
+        console.warn("Erro ao salvar mensagem no Firestore:", e);
+        alert("Erro ao salvar o segredo. Tente novamente.");
+      }
+    }
+
+    async function update(id, patch) {
+      try {
+        const docRef = doc(dbFire, "segredos", id);
+        await updateDoc(docRef, patch);
+        const index = DB.segredos.findIndex(m => m.id === id);
+        if (index > -1) {
+          DB.segredos[index] = { ...DB.segredos[index], ...patch };
+          updateView();
+        }
+      } catch (e) {
+        console.warn("Erro ao atualizar mensagem no Firestore:", e);
+        alert("Erro ao atualizar o segredo. Tente novamente.");
+      }
+    }
+
+    async function remove(id) {
+      try {
+        await deleteDoc(doc(dbFire, "segredos", id));
+        DB.segredos = DB.segredos.filter(m => m.id !== id);
+        updateView();
+      } catch (e) {
+        console.warn("Erro ao remover mensagem do Firestore:", e);
+        alert("Erro ao remover o segredo. Tente novamente.");
+      }
+    }
+
+    function showConfirmModal(title, message, onConfirm) {
+      showModal(`
+        <h3 style="text-align: center;">${title}</h3>
+        <div style="margin-top:6px; text-align: center;"><em>${message}</em></div>
+        <div style="margin-top:12px; display: flex; justify-content: space-between;">
+          <button class="btn primary" id="confirmAction">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          </button>
+          <button class="btn" id="cancelAction">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+      `);
+      $('#confirmAction').onclick = () => { closeModal(); onConfirm(); };
+      $('#cancelAction').onclick = closeModal;
+    }
+
+    const Views = {
+      feed() {
+        const container = document.createElement('div');
+        container.innerHTML = `<div style="margin-bottom:16px; text-align: center;">
+            <h3 style="margin:0; font-size: 2rem;">Seus Segredos Sombrios</h3>
+            <div class="muted" style="margin-top:4px"><em>Seus pensamentos mais obscuros guardados aqui</em></div>
+          </div>`;
+        const list = document.createElement('div');
+        list.className = 'list';
+        DB.segredos.forEach(msg => {
+          list.appendChild(renderMessage(msg));
+        });
+        if (list.children.length === 0) {
+          list.innerHTML = `<div class="empty">Nenhum segredo sombrio ainda. Comece compartilhando seus pensamentos mais obscuros!</div>`;
+        }
+        container.appendChild(list);
+        const spacer = document.createElement('div');
+        spacer.className = 'spacer';
+        container.appendChild(spacer);
+        return container;
+      },
+      postar() {
+        showModal(`
+          <h3 style="text-align: center;">Novo Segredo Sombrio</h3>
+          <div style="margin-top:6px; text-align: center;"><em>Desabafe seus pensamentos mais obscuros</em></div>
+          <div style="margin-top:10px; position: relative;" class="textarea-container">
+            <div class="muted" style="position: absolute; top: -24px; right: 0;">0/500</div>
+            <textarea id="newMemory" placeholder="Escreva seu segredo sombrio... 💭" maxlength="500"></textarea>
+            <div style="margin-top:12px; display: flex; justify-content: space-between;">
+              <button class="btn primary" id="saveMemory" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+              </button>
+              <button class="btn" id="cancelMemory">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+            </div>
+            <div style="margin-top:12px; display: flex; justify-content: center; gap: 12px;">
+              <button class="emoji-btn" data-emoji="👻">👻</button>
+              <button class="emoji-btn" data-emoji="💀">💀</button>
+              <button class="emoji-btn" data-emoji="😈">😈</button>
+            </div>
+          </div>
+        `);
+        const area = $('#newMemory');
+        const charCount = $('#newMemory').parentElement.querySelector('.muted');
+        const saveBtn = $('#saveMemory');
+        let selectedEmoji = null;
+
+        $$('.emoji-btn').forEach(btn => {
+          btn.onclick = () => {
+            $$('.emoji-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedEmoji = btn.dataset.emoji;
+            saveBtn.disabled = area.value.trim().length === 0 || !selectedEmoji;
+          };
+        });
+
+        area.oninput = () => {
+          charCount.textContent = `${area.value.length}/500`;
+          saveBtn.disabled = area.value.trim().length === 0 || !selectedEmoji;
+        };
+
+        saveBtn.onclick = () => {
+          const text = area.value.trim();
+          if (text.length === 0 || !selectedEmoji) {
+            alert('Por favor, escreva um segredo e selecione um emoji.');
+            area.focus();
+            return;
+          }
+          showConfirmModal(
+            'Confirmar Novo Segredo',
+            'Deseja guardar este segredo sombrio?',
+            async () => {
+              const msg = { text: `${selectedEmoji} ${text}`, likes: [] };
+              await add(msg);
+              closeModal();
+            }
+          );
+        };
+        $('#cancelMemory').onclick = closeModal;
+      }
+    };
+
+    function renderMessage(msg) {
+      const el = document.createElement('div');
+      el.className = 'msg';
+      el.dataset.messageId = msg.id;
+
+      const content = document.createElement('div');
+      content.className = 'content';
+
+      const text = document.createElement('div');
+      text.className = 'ranking-text';
+      text.textContent = msg.text;
+
+      content.appendChild(text);
+      el.appendChild(content);
+
+      let startX = 0, startY = 0, isDragging = false, translateX = 0;
+      const threshold = 50;
+
+      el.style.position = 'relative';
+      el.style.transition = 'transform 0.2s ease-out, box-shadow 0.2s ease-out';
+      el.style.userSelect = 'none';
+
+      el.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        el.style.transition = 'none';
+      });
+
+      el.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          isDragging = false;
+          el.style.transform = 'translateX(0)';
+          el.style.boxShadow = 'none';
+          return;
+        }
+
+        translateX = deltaX;
+        translateX = Math.max(-100, Math.min(100, translateX));
+        el.style.transform = `translateX(${translateX}px)`;
+        
+        if (translateX < -threshold) {
+          el.style.boxShadow = '5px 0 10px rgba(75, 0, 130, 0.5)';
+        } else if (translateX > threshold) {
+          el.style.boxShadow = '-5px 0 10px rgba(139, 0, 0, 0.5)';
+        } else {
+          el.style.boxShadow = 'none';
+        }
+        e.preventDefault();
+      });
+
+      el.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        el.style.transition = 'transform 0.2s ease-out, box-shadow 0.2s ease-out';
+        el.style.transform = 'translateX(0)';
+        el.style.boxShadow = 'none';
+
+        if (translateX < -threshold) {
+          handleEditMessage(msg);
+        } else if (translateX > threshold) {
+          handleDeleteMessage(msg);
+        }
+        translateX = 0;
+      });
+
+      el.addEventListener('mousedown', (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        isDragging = true;
+        el.style.transition = 'none';
+      });
+
+      el.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const currentX = e.clientX;
+        const currentY = e.clientY;
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          isDragging = false;
+          el.style.transform = 'translateX(0)';
+          el.style.boxShadow = 'none';
+          return;
+        }
+
+        translateX = deltaX;
+        translateX = Math.max(-100, Math.min(100, translateX));
+        el.style.transform = `translateX(${translateX}px)`;
+        if (translateX < -threshold) {
+          el.style.boxShadow = '5px 0 10px rgba(75, 0, 130, 0.5)';
+        } else if (translateX > threshold) {
+          el.style.boxShadow = '-5px 0 10px rgba(139, 0, 0, 0.5)';
+        } else {
+          el.style.boxShadow = 'none';
+        }
+        e.preventDefault();
+      });
+
+      el.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        el.style.transition = 'transform 0.2s ease-out, box-shadow 0.2s ease-out';
+        el.style.transform = 'translateX(0)';
+        el.style.boxShadow = 'none';
+
+        if (translateX < -threshold) {
+          handleEditMessage(msg);
+        } else if (translateX > threshold) {
+          handleDeleteMessage(msg);
+        }
+        translateX = 0;
+      });
+
+      el.addEventListener('mouseleave', () => {
+        if (isDragging) {
+          isDragging = false;
+          el.style.transition = 'transform 0.2s ease-out, box-shadow 0.2s ease-out';
+          el.style.transform = 'translateX(0)';
+          el.style.boxShadow = 'none';
+          translateX = 0;
+        }
+      });
+
+      return el;
+    }
+
+    async function handleEditMessage(msg) {
+      showModal(`
+        <h3 style="text-align: center;">Editar Segredo Sombrio</h3>
+        <div style="margin-top:6px; text-align: center;">Edite seu segredo (máx. 500 caracteres):</div>
+        <div style="margin-top:10px; position: relative;">
+          <textarea id="editText" maxlength="500">${msg.text}</textarea>
+        </div>
+        <div style="margin-top:12px; display: flex; justify-content: space-between;">
+          <button class="btn primary" id="saveEdit">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+          </button>
+          <button class="btn" id="cancelEdit">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+      `);
+      $('#cancelEdit').onclick = closeModal;
+      $('#saveEdit').onclick = () => {
+        const newText = $('#editText').value.trim();
+        if (newText.length === 0) {
+          alert('O segredo não pode estar vazio.');
+          return;
+        }
+        showConfirmModal(
+          'Confirmar Edição',
+          'Deseja salvar as alterações neste segredo?',
+          async () => {
+            await update(msg.id, { text: newText });
+            closeModal();
+          }
+        );
+      };
+    }
+
+    async function handleDeleteMessage(msg) {
+      showModal(`
+        <h3 style="text-align: center;">Apagar Segredo Sombrio</h3>
+        <div style="margin-top:6px; text-align: center;">Tem certeza que deseja apagar este segredo?</div>
+        <div style="margin-top:10px;padding:12px;background:#333333;border-radius:8px;border: 1px solid #4b0082">${msg.text}</div>
+        <div style="margin-top:12px; display: flex; justify-content: space-between;">
+          <button class="btn danger" id="confirmDelete">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+          <button class="btn" id="cancelDelete">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+      `);
+      $('#cancelDelete').onclick = closeModal;
+      $('#confirmDelete').onclick = () => {
+        showConfirmModal(
+          'Confirmar Exclusão',
+          'Deseja realmente apagar este segredo?',
+          async () => {
+            await remove(msg.id);
+            closeModal();
+          }
+        );
+      };
+    }
+
+    function mount(node) {
+      const root = $('#view');
+      root.innerHTML = '';
+      root.appendChild(node);
+    }
+
+    function updateView() {
+      mount(Views.feed());
+      location.hash = '#feed';
+    }
+
+    async function initializeAuth() {
+      try {
+        await signInAnonymously(auth);
+      } catch (err) {
+        console.error('Erro ao realizar login anônimo:', err);
+        window.location.href = 'login.html';
+      }
+    }
+
+    async function init() {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          DB.user = user;
+          const userDocRef = doc(dbFire, "users", user.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists() && docSnap.data().loginOK === true) {
+            try {
+              const snap = await getDocs(collection(dbFire, "segredos"));
+              DB.segredos = [];
+              snap.forEach(docSnap => {
+                const data = docSnap.data();
+                DB.segredos.push({
+                  id: docSnap.id,
+                  text: data.text,
+                  likes: data.likes || []
+                });
+              });
+              updateView();
+            } catch (e) {
+              console.warn("Erro ao carregar mensagens:", e);
+              alert("Erro ao carregar dados. Tente novamente.");
+            }
+
+            $('.fab').disabled = false;
+          } else {
+            window.location.href = "login.html";
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      await initializeAuth();
+    }
+
+    $('.fab').addEventListener('click', () => {
+      if (DB.user) {
+        Views.postar();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    window.addEventListener('hashchange', () => {
+      if (DB.user && location.hash !== '#feed') {
+        updateView();
+      }
+    });
+
+    function showModal(html) {
+      const root = $('#modalRoot');
+      root.innerHTML = '';
+      root.style.display = 'grid';
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `<div class="box">${html}</div>`;
+      modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+      root.appendChild(modal);
+    }
+
+    function closeModal() {
+      const root = $('#modalRoot');
+      root.style.display = 'none';
+      root.innerHTML = '';
+    }
+
+    init();
+  </script> 
+</body>
+</html>

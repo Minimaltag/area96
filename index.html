@@ -90,6 +90,7 @@
       <button class="btn" id="gastosBtn">Gastos</button>
       <button class="btn" id="senhasBtn">Senhas</button>
       <button class="btn" id="tarefasBtn">Tarefas</button>
+      <button class="btn" id="diarioBtn">Diário</button>
       <button class="btn" id="logoffBtn">Logoff</button>
 
       <p class="loader" id="loader">Carregando...</p>
@@ -118,6 +119,7 @@
     const gastosBtn = $('#gastosBtn');
     const senhasBtn = $('#senhasBtn');
     const tarefasBtn = $('#tarefasBtn');
+    const diarioBtn = $('#diarioBtn');
     const loader = $('#loader');
 
     async function init() {
@@ -126,6 +128,7 @@
       gastosBtn.style.display = 'none';
       senhasBtn.style.display = 'none';
       tarefasBtn.style.display = 'none';
+      diarioBtn.style.display = 'none';
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -137,6 +140,7 @@
             gastosBtn.style.display = 'inline-block';
             senhasBtn.style.display = 'inline-block';
             tarefasBtn.style.display = 'inline-block';
+            diarioBtn.style.display = 'inline-block';
           } else {
             window.location.href = "login.html";
           }
@@ -173,6 +177,10 @@
 
       tarefasBtn.addEventListener('click', () => {
         window.location.href = "tarefas.html";
+      });
+
+      diarioBtn.addEventListener('click', () => {
+        window.location.href = "diario.html";
       });
     }
 

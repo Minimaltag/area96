@@ -178,9 +178,9 @@
     syncStatus.className = 'sync-status ' + status;
   }
 
-  // Referência ao documento do usuário no Firestore
+  // Referência ao documento compartilhado no Firestore
   function getUserDocRef() {
-    return db.collection('tarefas').doc(currentUserId);
+    return db.collection('tarefas').doc('shared');
   }
 
   // Sincronizar dados com o Firestore
@@ -269,10 +269,9 @@
 
   // Funções de armazenamento local
   function loadLocalData() {
-    const userSpecificKey = `${STORAGE_KEY}_${currentUserId}`;
     let data;
     try {
-      data = JSON.parse(localStorage.getItem(userSpecificKey)) || {};
+      data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
     } catch (e) {
       data = {};
     }
@@ -280,8 +279,7 @@
   }
 
   function saveLocalData(state) {
-    const userSpecificKey = `${STORAGE_KEY}_${currentUserId}`;
-    localStorage.setItem(userSpecificKey, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
   // Event Listeners
@@ -694,26 +692,36 @@
   async function initApp(user) {
     currentUserId = user.uid;
     try {
+      // Verificar se loginOK é true no Firestore
+      const userDoc = await db.collection('users').doc(currentUserId).get();
+      if (!userDoc.exists || !userDoc.data().loginOK) {
+        window.location.href = 'login.html';
+        return;
+      }
+
       state = await syncWithFirestore();
       render();
       appContainer.style.display = 'grid';
       floatingButtons.style.display = 'flex';
     } catch (error) {
       console.error('Erro na inicialização:', error);
-      state = loadLocalData();
-      render();
-      appContainer.style.display = 'grid';
-      floatingButtons.style.display = 'flex';
+      window.location.href = 'login.html';
     }
   }
 
   // Monitorar estado de autenticação
-  auth.onAuthStateChanged(user => {
+  auth.onAuthStateChanged(async user => {
     if (user) {
-      initApp(user);
+      await initApp(user);
     } else {
-      // Redirecionar para login.html se não estiver autenticado
-      window.location.href = 'login.html';
+      // Tentar login anônimo
+      try {
+        const result = await auth.signInAnonymously();
+        await initApp(result.user);
+      } catch (error) {
+        console.error('Erro no login anônimo:', error);
+        window.location.href = 'login.html';
+      }
     }
   });
 

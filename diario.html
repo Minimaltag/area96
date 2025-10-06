@@ -95,6 +95,13 @@
       background: #f5f5f5;
       border-radius: 12px;
       border-left: 4px solid #000000;
+      white-space: pre-wrap; /* Respeita quebras de linha */
+    }
+    .title-text {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 8px;
     }
     .muted {
       color: #666;
@@ -193,15 +200,17 @@
     .emoji-btn:hover {
       background: #e0e0e0;
     }
-    textarea {
+    input[type="text"], textarea {
       width: 100%;
       padding: 12px;
       border-radius: 8px;
       border: 1px solid #000;
-      min-height: 120px;
-      resize: none;
       font-family: 'Roboto', sans-serif;
       font-size: 16px;
+    }
+    textarea {
+      min-height: 120px;
+      resize: none;
     }
     .textarea-container {
       position: relative;
@@ -282,12 +291,14 @@
     async function add(message) {
       try {
         const docRef = await addDoc(collection(dbFire, "diario"), {
+          title: message.title,
           text: message.text,
-          createdAt: serverTimestamp(), // Usar serverTimestamp para maior precisão
+          emoji: message.emoji,
+          createdAt: serverTimestamp(),
           likes: message.likes || []
         });
         message.id = docRef.id;
-        message.createdAt = Date.now(); // Temporário para exibição imediata
+        message.createdAt = Date.now();
         DB.diario.push(message);
         updateView();
       } catch (e) {
@@ -382,8 +393,11 @@
         showModal(`
           <h3 style="text-align: center;">Nova Recordação</h3>
           <div style="margin-top:6px; text-align: center;"><em>Guarde este momento para sempre</em></div>
+          <div style="margin-top:10px;">
+            <input type="text" id="newTitle" placeholder="Título da recordação" maxlength="100">
+          </div>
           <div style="margin-top:10px; position: relative;" class="textarea-container">
-            <div class="muted" style="position: absolute; top: -24px; right: 0;">0/500</div>
+            <div class="muted" style="position: absolute; top: -24px; right: 10px;">0/500</div>
             <textarea id="newMemory" placeholder="Escreva sua recordação especial... 💭" maxlength="500"></textarea>
             <div style="margin-top:12px; display: flex; justify-content: space-between;">
               <button class="btn primary" id="saveMemory" disabled>
@@ -400,6 +414,7 @@
             </div>
           </div>
         `);
+        const titleInput = $('#newTitle');
         const area = $('#newMemory');
         const charCount = $('#newMemory').parentElement.querySelector('.muted');
         const saveBtn = $('#saveMemory');
@@ -414,12 +429,13 @@
           };
         });
 
-        area.oninput = () => {
+        area.oninput = titleInput.oninput = () => {
           charCount.textContent = `${area.value.length}/500`;
           saveBtn.disabled = area.value.trim().length === 0 || !selectedEmoji;
         };
 
         saveBtn.onclick = () => {
+          const title = titleInput.value.trim();
           const text = area.value.trim();
           if (text.length === 0 || !selectedEmoji) {
             alert('Por favor, escreva uma recordação e selecione um emoji.');
@@ -430,7 +446,13 @@
             'Confirmar Nova Recordação',
             'Deseja salvar esta recordação?',
             async () => {
-              const msg = { text: `${selectedEmoji} ${text}`, createdAt: Date.now(), likes: [] };
+              const msg = {
+                title: title || 'Sem Título',
+                text: text,
+                emoji: selectedEmoji,
+                createdAt: Date.now(),
+                likes: []
+              };
               await add(msg);
               closeModal();
             }
@@ -450,8 +472,12 @@
 
       const meta = document.createElement('div');
       meta.className = 'meta';
-      meta.innerHTML = `<span class="muted">${timeAgo(msg.createdAt)}</span>`;
+      meta.innerHTML = `<span style="margin-right: 8px;">${msg.emoji || ''}</span><span class="muted">${timeAgo(msg.createdAt)}</span>`;
       
+      const title = document.createElement('div');
+      title.className = 'title-text';
+      title.textContent = msg.title || 'Sem Título';
+
       const text = document.createElement('div');
       text.className = 'ranking-text';
       text.textContent = msg.text;
@@ -466,8 +492,9 @@
       headerRow.appendChild(date);
       headerRow.appendChild(meta);
       
-      content.appendChild(headerRow);
+      content.appendChild(title);
       content.appendChild(text);
+      content.appendChild(headerRow);
       el.appendChild(content);
 
       let startX = 0, startY = 0, isDragging = false, translateX = 0;
@@ -604,6 +631,9 @@
       showModal(`
         <h3 style="text-align: center;">Editar Recordação</h3>
         <div style="margin-top:6px; text-align: center;">Edite sua recordação (máx. 500 caracteres):</div>
+        <div style="margin-top:10px;">
+          <input type="text" id="editTitle" placeholder="Título da recordação" maxlength="100" value="${msg.title || ''}">
+        </div>
         <div style="margin-top:10px; position: relative;">
           <textarea id="editText" maxlength="500">${msg.text}</textarea>
         </div>
@@ -618,6 +648,7 @@
       `);
       $('#cancelEdit').onclick = closeModal;
       $('#saveEdit').onclick = () => {
+        const newTitle = $('#editTitle').value.trim();
         const newText = $('#editText').value.trim();
         if (newText.length === 0) {
           alert('A recordação não pode estar vazia.');
@@ -627,7 +658,7 @@
           'Confirmar Edição',
           'Deseja salvar as alterações nesta recordação?',
           async () => {
-            await update(msg.id, { text: newText });
+            await update(msg.id, { title: newTitle || 'Sem Título', text: newText });
             closeModal();
           }
         );
@@ -638,7 +669,10 @@
       showModal(`
         <h3 style="text-align: center;">Apagar Recordação</h3>
         <div style="margin-top:6px; text-align: center;">Tem certeza que deseja apagar esta recordação?</div>
-        <div style="margin-top:10px;padding:12px;background:#f5f5f5;border-radius:8px;border: 1px solid #000">${msg.text}</div>
+        <div style="margin-top:10px;padding:12px;background:#f5f5f5;border-radius:8px;border: 1px solid #000">
+          <div style="text-align: center; font-weight: 500;">${msg.title || 'Sem Título'}</div>
+          <div style="margin-top: 8px;">${msg.text}</div>
+        </div>
         <div style="margin-top:12px; display: flex; justify-content: space-between;">
           <button class="btn danger" id="confirmDelete">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -727,7 +761,6 @@
           if (docSnap.exists() && docSnap.data().loginOK === true) {
             DB.currentMonth = new Date().toISOString().slice(0, 7);
 
-            // Carregar mensagens apenas uma vez
             try {
               const snap = await getDocs(collection(dbFire, "diario"));
               DB.diario = [];
@@ -736,7 +769,9 @@
                 const createdAt = data.createdAt?.toMillis?.() ?? Date.now();
                 DB.diario.push({
                   id: docSnap.id,
+                  title: data.title,
                   text: data.text,
+                  emoji: data.emoji,
                   createdAt: createdAt,
                   likes: data.likes || []
                 });
@@ -747,7 +782,6 @@
               alert("Erro ao carregar dados. Tente novamente.");
             }
 
-            // Habilitar controles
             $('.fab').disabled = false;
             $('.header-fab').disabled = false;
           } else {

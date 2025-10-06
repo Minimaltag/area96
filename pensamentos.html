@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#2e2a44">
-  <title>Canto de Desabafo</title>    
+  <title>Canto do Pensamento</title>    
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -77,6 +77,26 @@
       background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       border-left: 4px solid #6b5b95;
+      white-space: pre-wrap;
+    }
+    .title-text {
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+    .timestamp-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .timestamp {
+      font-size: 12px;
+      color: #b0b0b0;
+    }
+    .emoji-display {
+      font-size: 20px;
     }
     .muted {
       color: #b0b0b0;
@@ -162,17 +182,22 @@
     .emoji-btn:hover {
       background: rgba(255, 255, 255, 0.2);
     }
-    textarea {
+    textarea, input {
       width: 100%;
       padding: 12px;
       border-radius: 8px;
       border: 1px solid #6b5b95;
-      min-height: 120px;
-      resize: none;
       font-family: 'Roboto', sans-serif;
       font-size: 16px;
       background: rgba(255, 255, 255, 0.05);
       color: #e0e0e0;
+    }
+    textarea {
+      min-height: 120px;
+      resize: none;
+    }
+    input {
+      margin-bottom: 12px;
     }
     .textarea-container {
       position: relative;
@@ -202,7 +227,7 @@
 </head>
 <body>
   <header>
-    <h1>Canto de Desabafo</h1>
+    <h1>Canto do Pensamento</h1>
     <div class="datetime" id="datetime"></div>
   </header>
   <main class="wrap">
@@ -212,7 +237,7 @@
       </section>
     </div>
   </main>
-  <button class="fab" data-tab="postar" title="Novo Desabafo">
+  <button class="fab" data-tab="postar" title="Novo Pensamento">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="white" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
   </button>
   <div id="modalRoot" style="display:none"></div>
@@ -240,12 +265,10 @@
       appId: "1:907049617182:web:5b65de251d7553274eeb0f"
     };
 
-    // Inicialização do Firebase
     const app = initializeApp(firebaseConfig);
     const dbFire = getFirestore(app);
     const auth = getAuth(app);
 
-    // Função para atualizar a data e hora no fuso horário de Manaus
     function updateDateTime() {
       const options = {
         timeZone: 'America/Manaus',
@@ -261,22 +284,24 @@
       $('#datetime').textContent = now;
     }
 
-    // Atualiza a data e hora imediatamente e a cada segundo
     updateDateTime();
     setInterval(updateDateTime, 1000);
 
     async function add(message) {
       try {
         const docRef = await addDoc(collection(dbFire, "pensamentos"), {
+          title: message.title,
           text: message.text,
-          likes: message.likes || []
+          emoji: message.emoji,
+          likes: message.likes || [],
+          timestamp: new Date().toISOString()
         });
         message.id = docRef.id;
         DB.pensamentos.push(message);
         updateView();
       } catch (e) {
         console.warn("Erro ao salvar mensagem no Firestore:", e);
-        alert("Erro ao salvar o desabafo. Tente novamente.");
+        alert("Erro ao salvar o pensamento. Tente novamente.");
       }
     }
 
@@ -291,7 +316,7 @@
         }
       } catch (e) {
         console.warn("Erro ao atualizar mensagem no Firestore:", e);
-        alert("Erro ao atualizar o desabafo. Tente novamente.");
+        alert("Erro ao atualizar o pensamento. Tente novamente.");
       }
     }
 
@@ -302,7 +327,7 @@
         updateView();
       } catch (e) {
         console.warn("Erro ao remover mensagem do Firestore:", e);
-        alert("Erro ao remover o desabafo. Tente novamente.");
+        alert("Erro ao remover o pensamento. Tente novamente.");
       }
     }
 
@@ -327,7 +352,6 @@
       feed() {
         const container = document.createElement('div');
         container.innerHTML = `<div style="margin-bottom:16px; text-align: center;">
-            <h3 style="margin:0; font-size: 2rem;">Seus Desabafos</h3>
             <div class="muted" style="margin-top:4px"><em>Um espaço para seus pensamentos mais profundos voarem livres</em></div>
           </div>`;
         const list = document.createElement('div');
@@ -336,7 +360,7 @@
           list.appendChild(renderMessage(msg));
         });
         if (list.children.length === 0) {
-          list.innerHTML = `<div class="empty">Nenhum desabafo ainda. Deixe sua imaginação fluir!</div>`;
+          list.innerHTML = `<div class="empty">Nenhum pensamento ainda. Deixe sua imaginação fluir!</div>`;
         }
         container.appendChild(list);
         const spacer = document.createElement('div');
@@ -346,11 +370,17 @@
       },
       postar() {
         showModal(`
-          <h3 style="text-align: center;">Novo Desabafo</h3>
+          <h3 style="text-align: center;">Novo Pensamento</h3>
           <div style="margin-top:6px; text-align: center;"><em>Deixe sua imaginação voar e expresse seus pensamentos</em></div>
           <div style="margin-top:10px; position: relative;" class="textarea-container">
+            <input id="newTitle" placeholder="Título do pensamento" maxlength="100" />
             <div class="muted" style="position: absolute; top: -24px; right: 0;">0/500</div>
-            <textarea id="newMemory" placeholder="Escreva seu desabafo mais profundo... 🔞" maxlength="500"></textarea>
+            <textarea id="newMemory" placeholder="Escreva seu pensamento mais profundo... 🔞" maxlength="500"></textarea>
+            <div style="margin-top:12px; display: flex; justify-content: center; gap: 12px;">
+              <button class="emoji-btn" data-emoji="🔞">🔞</button>
+              <button class="emoji-btn" data-emoji="☠️">☠️</button>
+              <button class="emoji-btn" data-emoji="👽">👽</button>
+            </div>
             <div style="margin-top:12px; display: flex; justify-content: space-between;">
               <button class="btn primary" id="saveMemory" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
@@ -359,13 +389,9 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
               </button>
             </div>
-            <div style="margin-top:12px; display: flex; justify-content: center; gap: 12px;">
-              <button class="emoji-btn" data-emoji="🔞">🔞</button>
-              <button class="emoji-btn" data-emoji="☠️">☠️</button>
-              <button class="emoji-btn" data-emoji="👽">👽</button>
-            </div>
           </div>
         `);
+        const titleInput = $('#newTitle');
         const area = $('#newMemory');
         const charCount = $('#newMemory').parentElement.querySelector('.muted');
         const saveBtn = $('#saveMemory');
@@ -380,23 +406,24 @@
           };
         });
 
-        area.oninput = () => {
+        area.oninput = titleInput.oninput = () => {
           charCount.textContent = `${area.value.length}/500`;
           saveBtn.disabled = area.value.trim().length === 0 || !selectedEmoji;
         };
 
         saveBtn.onclick = () => {
+          const title = titleInput.value.trim();
           const text = area.value.trim();
           if (text.length === 0 || !selectedEmoji) {
-            alert('Por favor, escreva um desabafo e selecione um emoji.');
+            alert('Por favor, escreva um pensamento e selecione um emoji.');
             area.focus();
             return;
           }
           showConfirmModal(
-            'Confirmar Novo Desabafo',
-            'Deseja salvar este desabafo?',
+            'Confirmar Novo Pensamento',
+            'Deseja salvar este pensamento?',
             async () => {
-              const msg = { text: `${selectedEmoji} ${text}`, likes: [] };
+              const msg = { title, text, emoji: selectedEmoji, likes: [], timestamp: new Date().toISOString() };
               await add(msg);
               closeModal();
             }
@@ -414,11 +441,39 @@
       const content = document.createElement('div');
       content.className = 'content';
 
+      const title = document.createElement('div');
+      title.className = 'title-text';
+      title.textContent = msg.title || 'Sem Título';
+
       const text = document.createElement('div');
       text.className = 'ranking-text';
       text.textContent = msg.text;
 
+      const timestampContainer = document.createElement('div');
+      timestampContainer.className = 'timestamp-container';
+
+      const timestamp = document.createElement('div');
+      timestamp.className = 'timestamp';
+      timestamp.textContent = new Date(msg.timestamp).toLocaleString('pt-BR', {
+        timeZone: 'America/Manaus',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+
+      const emoji = document.createElement('div');
+      emoji.className = 'emoji-display';
+      emoji.textContent = msg.emoji || '';
+
+      timestampContainer.appendChild(timestamp);
+      timestampContainer.appendChild(emoji);
+
+      content.appendChild(title);
       content.appendChild(text);
+      content.appendChild(timestampContainer);
       el.appendChild(content);
 
       let startX = 0, startY = 0, isDragging = false, translateX = 0;
@@ -542,9 +597,10 @@
 
     async function handleEditMessage(msg) {
       showModal(`
-        <h3 style="text-align: center;">Editar Desabafo</h3>
-        <div style="margin-top:6px; text-align: center;">Edite seu desabafo (máx. 500 caracteres):</div>
+        <h3 style="text-align: center;">Editar Pensamento</h3>
+        <div style="margin-top:6px; text-align: center;">Edite seu pensamento (máx. 500 caracteres):</div>
         <div style="margin-top:10px; position: relative;">
+          <input id="editTitle" value="${msg.title || ''}" placeholder="Título do pensamento" maxlength="100" />
           <textarea id="editText" maxlength="500">${msg.text}</textarea>
         </div>
         <div style="margin-top:12px; display: flex; justify-content: space-between;">
@@ -558,16 +614,17 @@
       `);
       $('#cancelEdit').onclick = closeModal;
       $('#saveEdit').onclick = () => {
+        const newTitle = $('#editTitle').value.trim();
         const newText = $('#editText').value.trim();
         if (newText.length === 0) {
-          alert('O desabafo não pode estar vazio.');
+          alert('O pensamento não pode estar vazio.');
           return;
         }
         showConfirmModal(
           'Confirmar Edição',
-          'Deseja salvar as alterações neste desabafo?',
+          'Deseja salvar as alterações neste pensamento?',
           async () => {
-            await update(msg.id, { text: newText });
+            await update(msg.id, { title: newTitle, text: newText, emoji: msg.emoji });
             closeModal();
           }
         );
@@ -576,9 +633,9 @@
 
     async function handleDeleteMessage(msg) {
       showModal(`
-        <h3 style="text-align: center;">Apagar Desabafo</h3>
-        <div style="margin-top:6px; text-align: center;">Tem certeza que deseja apagar este desabafo?</div>
-        <div style="margin-top:10px;padding:12px;background:rgba(255, 255, 255, 0.1);border-radius:8px;border: 1px solid #6b5b95">${msg.text}</div>
+        <h3 style="text-align: center;">Apagar Pensamento</h3>
+        <div style="margin-top:6px; text-align: center;">Tem certeza que deseja apagar este pensamento?</div>
+        <div style="margin-top:10px;padding:12px;background:rgba(255, 255, 255, 0.1);border-radius:8px;border: 1px solid #6b5b95">${msg.title ? `<strong>${msg.title}</strong><br>` : ''}${msg.text} ${msg.emoji}</div>
         <div style="margin-top:12px; display: flex; justify-content: space-between;">
           <button class="btn danger" id="confirmDelete">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -592,7 +649,7 @@
       $('#confirmDelete').onclick = () => {
         showConfirmModal(
           'Confirmar Exclusão',
-          'Deseja realmente apagar este desabafo?',
+          'Deseja realmente apagar este pensamento?',
           async () => {
             await remove(msg.id);
             closeModal();
@@ -635,8 +692,11 @@
                 const data = docSnap.data();
                 DB.pensamentos.push({
                   id: docSnap.id,
+                  title: data.title,
                   text: data.text,
-                  likes: data.likes || []
+                  emoji: data.emoji,
+                  likes: data.likes || [],
+                  timestamp: data.timestamp
                 });
               });
               updateView();

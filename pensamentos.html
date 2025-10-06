@@ -33,6 +33,11 @@
       font-weight: 700;
       text-shadow: 0 0 10px rgba(107, 91, 149, 0.7);
     }
+    .datetime {
+      font-size: 14px;
+      color: #b0b0b0;
+      margin-top: 8px;
+    }
     .wrap {
       max-width: 800px;
       margin: 0 auto;
@@ -198,6 +203,7 @@
 <body>
   <header>
     <h1>Canto de Desabafo</h1>
+    <div class="datetime" id="datetime"></div>
   </header>
   <main class="wrap">
     <div class="grid">
@@ -238,6 +244,26 @@
     const app = initializeApp(firebaseConfig);
     const dbFire = getFirestore(app);
     const auth = getAuth(app);
+
+    // Função para atualizar a data e hora no fuso horário de Manaus
+    function updateDateTime() {
+      const options = {
+        timeZone: 'America/Manaus',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      };
+      const now = new Date().toLocaleString('pt-BR', options);
+      $('#datetime').textContent = now;
+    }
+
+    // Atualiza a data e hora imediatamente e a cada segundo
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
 
     async function add(message) {
       try {

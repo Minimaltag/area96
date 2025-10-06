@@ -232,7 +232,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc
+      getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
@@ -258,13 +258,26 @@
     const dbFire = getFirestore(app);
     const auth = getAuth(app);
 
+    // Função para formatar a data no fuso horário de Manaus
+    function formatDateManaus(timestamp) {
+      if (!timestamp) return '';
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return new Intl.DateTimeFormat('pt-BR', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+        timeZone: 'America/Manaus'
+      }).format(date);
+    }
+
     async function add(message) {
       try {
         const docRef = await addDoc(collection(dbFire, "segredos"), {
           text: message.text,
-          likes: message.likes || []
+          likes: message.likes || [],
+          createdAt: serverTimestamp()
         });
         message.id = docRef.id;
+        message.createdAt = new Date(); // Data temporária para renderização local
         DB.segredos.push(message);
         updateView();
       } catch (e) {
@@ -276,10 +289,10 @@
     async function update(id, patch) {
       try {
         const docRef = doc(dbFire, "segredos", id);
-        await updateDoc(docRef, patch);
+        await updateDoc(docRef, { ...patch, updatedAt: serverTimestamp() });
         const index = DB.segredos.findIndex(m => m.id === id);
         if (index > -1) {
-          DB.segredos[index] = { ...DB.segredos[index], ...patch };
+          DB.segredos[index] = { ...DB.segredos[index], ...patch, updatedAt: new Date() };
           updateView();
         }
       } catch (e) {
@@ -411,7 +424,13 @@
       text.className = 'ranking-text';
       text.textContent = msg.text;
 
+      const timestamp = document.createElement('div');
+      timestamp.className = 'muted';
+      timestamp.style.marginTop = '8px';
+      timestamp.textContent = `Criado em: ${formatDateManaus(msg.createdAt)}`;
+
       content.appendChild(text);
+      content.appendChild(timestamp);
       el.appendChild(content);
 
       let startX = 0, startY = 0, isDragging = false, translateX = 0;
@@ -629,7 +648,8 @@
                 DB.segredos.push({
                   id: docSnap.id,
                   text: data.text,
-                  likes: data.likes || []
+                  likes: data.likes || [],
+                  createdAt: data.createdAt
                 });
               });
               updateView();

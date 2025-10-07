@@ -95,7 +95,7 @@
       background: #f5f5f5;
       border-radius: 12px;
       border-left: 4px solid #000000;
-      white-space: pre-wrap; /* Respeita quebras de linha */
+      white-space: pre-wrap;
     }
     .title-text {
       text-align: center;
@@ -283,7 +283,6 @@
       appId: "1:907049617182:web:5b65de251d7553274eeb0f"
     };
 
-    // Inicialização do Firebase
     const app = initializeApp(firebaseConfig);
     const dbFire = getFirestore(app);
     const auth = getAuth(app);
@@ -392,11 +391,11 @@
 
         showModal(`
           <h3 style="text-align: center;">Nova Recordação</h3>
-          <div style="margin-top:10px;">
+          <div style="margin-top:10px; position: relative;">
+            <div class="muted" style="position: absolute; top: -24px; right: 10px;">0/500</div>
             <input type="text" id="newTitle" placeholder="Título da recordação" maxlength="100">
           </div>
-          <div style="margin-top:10px; position: relative;" class="textarea-container">
-            <div class="muted" style="position: absolute; top: -24px; right: 10px;">0/500</div>
+          <div style="margin-top:10px;">
             <textarea id="newMemory" placeholder="Escreva sua recordação especial... 💭" maxlength="500"></textarea>
             <div style="margin-top:12px; display: flex; justify-content: space-between;">
               <button class="btn primary" id="saveMemory" disabled>
@@ -415,7 +414,7 @@
         `);
         const titleInput = $('#newTitle');
         const area = $('#newMemory');
-        const charCount = $('#newMemory').parentElement.querySelector('.muted');
+        const charCount = titleInput.parentElement.querySelector('.muted');
         const saveBtn = $('#saveMemory');
         let selectedEmoji = null;
 
@@ -633,7 +632,7 @@
         <div style="margin-top:10px;">
           <input type="text" id="editTitle" placeholder="Título da recordação" maxlength="100" value="${msg.title || ''}">
         </div>
-        <div style="margin-top:10px; position: relative;">
+        <div style="margin-top:10px;">
           <textarea id="editText" maxlength="500">${msg.text}</textarea>
         </div>
         <div style="margin-top:12px; display: flex; justify-content: space-between;">
